@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Snera_Core.Entities;
 using Snera_Core.Models.UserModels;
-using Snera_Core.Unitofwork.Snera_Core.Interfaces;
+using Snera_Core.UnitOfWork;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Snera_Core.Services
 {
     public class UserService
-    { 
+    {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PasswordHasher<string> _passwordHasher;
 
@@ -22,18 +22,21 @@ namespace Snera_Core.Services
 
         public async Task<User> RegisterUserAsync(UserRegisterModel dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.Email) ||
-                !Regex.IsMatch(dto.Email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
+            // Validate email format
+            if (!Regex.IsMatch(dto.Email ?? "", @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
                 throw new Exception("Invalid email format.");
 
-            var existingUser = await _unitOfWork.Users.GetUserByEmailAsync(dto.Email);
+            // Use the generic repository for User
+            var userRepo = _unitOfWork.Repository<User>();
+
+            var existingUserList = await userRepo.FindAsync(u => u.Email == dto.Email);
+            var existingUser = existingUserList.FirstOrDefault();
             if (existingUser != null)
                 throw new Exception("Email already exists.");
 
             if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
                 throw new Exception("Password must be at least 6 characters long.");
 
-            // ✅ Hash password before saving
             var hashedPassword = _passwordHasher.HashPassword(dto.Email, dto.Password);
 
             var newUser = new User
@@ -48,32 +51,47 @@ namespace Snera_Core.Services
                 Created_Timestamp = DateTime.UtcNow
             };
 
-            await _unitOfWork.Users.RegisterAsync(newUser);
+            await userRepo.AddAsync(newUser);
+
+            // Add user skills
+            if (dto.UserSkills != null)
+            {
+                var userSkillRepo = _unitOfWork.Repository<UserSkill>();
+
+                foreach (var skill in dto.UserSkills)
+                {
+                    await userSkillRepo.AddAsync(new UserSkill
+                    {
+                        Skill_Name = skill,
+                        UserId = newUser.Id
+                    });
+                }
+            }
+
             await _unitOfWork.CompleteAsync();
             return newUser;
         }
 
-        // ✅ LOGIN
         public async Task<User> LoginUserAsync(UserLoginModel dto)
         {
-            var user = await _unitOfWork.Users.GetUserByEmailAsync(dto.Email);
+            var userRepo = _unitOfWork.Repository<User>();
+            var userList = await userRepo.FindAsync(u => u.Email == dto.Email);
+            var user = userList.FirstOrDefault();
 
             if (user == null)
                 throw new Exception("User not found.");
 
-            // ✅ Verify hashed password
             var result = _passwordHasher.VerifyHashedPassword(dto.Email, user.PasswordHash, dto.Password);
-
             if (result != PasswordVerificationResult.Success)
                 throw new Exception("Invalid password.");
 
             return user;
         }
 
-        // ✅ GET ALL USERS
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _unitOfWork.Users.GetAllUsersAsync();
+            var userRepo = _unitOfWork.Repository<User>();
+            return await userRepo.GetAllAsync();
         }
     }
 }
