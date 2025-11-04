@@ -1,4 +1,6 @@
-﻿namespace Snera_Core.Models.UserModels
+﻿using Snera_Core.Entities;
+
+namespace Snera_Core.Models.UserModels
 {
     public class UserRegisterModel
     {
@@ -9,6 +11,8 @@
         public string Current_Role { get; set; } = string.Empty;
         public string Experience { get; set; } = string.Empty;
         public string Bio { get; set; } = string.Empty;
+
+        public List<string>? UserSkills { get; set; }
 
     }
 }

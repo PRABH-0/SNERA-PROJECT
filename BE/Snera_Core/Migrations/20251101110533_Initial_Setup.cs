@@ -5,18 +5,20 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Snera_Core.Migrations
 {
-    /// <inheritdoc />
-    public partial class Initial_Setup : Migration
+    public partial class FixUserAndUserSkillGuid : Migration
     {
-        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Drop the old tables first if they exist
+            migrationBuilder.DropTable(name: "UserSkills");
+            migrationBuilder.DropTable(name: "Users");
+
+            // Recreate Users with Guid PK
             migrationBuilder.CreateTable(
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     FullName = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -33,14 +35,14 @@ namespace Snera_Core.Migrations
                     table.PrimaryKey("PK_Users", x => x.Id);
                 });
 
+            // Recreate UserSkills with proper Guid FK
             migrationBuilder.CreateTable(
                 name: "UserSkills",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Skill_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    User_Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    UserId = table.Column<int>(type: "int", nullable: false)
+                    UserId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -59,14 +61,10 @@ namespace Snera_Core.Migrations
                 column: "UserId");
         }
 
-        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "UserSkills");
-
-            migrationBuilder.DropTable(
-                name: "Users");
+            migrationBuilder.DropTable(name: "UserSkills");
+            migrationBuilder.DropTable(name: "Users");
         }
     }
 }

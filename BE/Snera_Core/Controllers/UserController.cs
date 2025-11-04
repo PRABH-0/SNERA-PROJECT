@@ -16,7 +16,6 @@ namespace Snera_Core.Controllers
             _userService = userService;
         }
 
-        // ------------------ REGISTER ------------------
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterModel dto)
         {
