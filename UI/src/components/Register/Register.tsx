@@ -9,19 +9,25 @@ const Register: React.FC = () => {
     <div>
       <button
         onClick={() => setGetOpen(true)}
-        className="text-[#2c2c2c] btn border-[#2c2c2c] rounded h-8  bg-white"
+        className="text-[var(--text-primary)] btn border-[var(--accent-color)] rounded h-8 bg-[var(--bg-primary)] "
       >
         Get Started
       </button>
       {GetOpen && (
-        <div className=" fixed inset-0  backdrop-blur bg-[#000c]  overflow-auto flex justify-center h-auto">
-          <div className="bg-white p-8 rounded-xl shadow-lg  w-[70vw]">
-            <h2 className="text-2xl font-bold text-center text-black  ">
-              Join Synera Community
+        <div className=" fixed inset-0  backdrop-blur bg-[#000c]  overflow-auto flex justify-center ">
+          <div className="bg-[var(--bg-primary)] p-8 rounded-xl shadow-lg  w-[70vw] h-[1100px]">
+            <button
+                onClick={() => setGetOpen(false)}
+                className="mt-6 text-gray-600"
+              >
+                Close
+              </button>
+            <h2 className="text-2xl font-bold text-center text-[var(--text-primary)] my-8 ">
+              Join SNERA Community
             </h2>
 
             <form>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
                 <div>
                   <label className="block text-sm font-medium">
                     Full Name *
@@ -69,7 +75,7 @@ const Register: React.FC = () => {
               {/* Profile Type */}
               <div>
                 <p className="font-medium mb-2">Profile Type</p>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
                   {[
                     { key: "student", label: "Student/Fresher" },
                     { key: "professional", label: "Professional" },
@@ -92,7 +98,7 @@ const Register: React.FC = () => {
               </div>
 
               {/* Experience Level */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
                 <div>
                   <label className="block text-sm font-medium">
                     Current Role/Title
@@ -108,7 +114,7 @@ const Register: React.FC = () => {
                   <label className="block text-sm font-medium mb-2">
                     Experience Level
                   </label>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 ">
                     {["0-1 years", "1-3 years", "3-5 years", "5+ years"].map(
                       (exp) => (
                         <button
@@ -134,7 +140,7 @@ const Register: React.FC = () => {
                 <label className="block text-sm font-medium mb-2">
                   Primary Skills (Select up to 3)
                 </label>
-                <div className="grid md:grid-cols-2 gap-3">
+                <div className="grid md:grid-cols-2 gap-3 mb-10">
                   {[
                     "Frontend Development",
                     "Backend Development",
@@ -167,16 +173,11 @@ const Register: React.FC = () => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-black text-white py-3 rounded-md font-semibold"
+                className="w-full bg-black text-white py-3 rounded-md font-semibold mt-10"
               >
                 Create Account & Join Community
               </button>
-              <button
-                onClick={() => setGetOpen(false)}
-                className="mt-6 text-gray-600"
-              >
-                Close
-              </button>
+              
 
               <p className="text-center text-sm mt-4">
                 Already have an account?{" "}

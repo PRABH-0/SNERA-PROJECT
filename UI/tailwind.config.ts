@@ -21,6 +21,7 @@ const config: Config = {
         'overlay': 'var(--overlay-bg)',
         'button-text': 'var(--button-text)',
         'section-border': 'var(--section-border)',
+         
       },
       boxShadow: {
         theme: '0 8px 24px var(--shadow-color)',
