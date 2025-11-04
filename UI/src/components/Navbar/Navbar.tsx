@@ -2,7 +2,7 @@ import React from 'react'
 import Searchbar from '../ResponsiveSearch/searchbar'
 import HamBurger from '../Hamburger/HamBurger'
 import logo from '../../assets/synera-2.png';
-import { ThemeToggle } from '../Theme/ThemeToggle';
+import ThemeToggle from '../Theme/ThemeToggle';
 
 
 const Navbar: React.FC = () => {
