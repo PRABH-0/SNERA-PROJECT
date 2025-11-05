@@ -71,7 +71,6 @@ builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 
-app.MapOpenApi();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
