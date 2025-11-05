@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Snera_Core.Models.UserModels;
 using Snera_Core.Services;
 using System.Threading.Tasks;
@@ -40,20 +41,15 @@ namespace Snera_Core.Controllers
         {
             try
             {
-                var user = await _userService.LoginUserAsync(dto);
-                return Ok(new
-                {
-                    message = "Login successful!",
-                    user.Id,
-                    user.Email
-                });
+                var userResponse = await _userService.LoginUserAsync(dto);
+                return Ok(userResponse);
             }
             catch (System.Exception ex)
             {
                 return BadRequest(new { error = ex.Message });
             }
         }
-
+        [Authorize]
         [HttpGet("getall")]
         public async Task<IActionResult> GetAllUsers()
         {

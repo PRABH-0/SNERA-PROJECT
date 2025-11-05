@@ -2,8 +2,8 @@
 {
     public class LoginResponseModel
     {
-        public string? UserName { get; set; }
+        public string LoginResponseString { get; set; }
+        public string? UserEmail { get; set; }
         public string? AccessToken {  get; set; }
-        public int ExpireIn {  get; set; }
     }
 }

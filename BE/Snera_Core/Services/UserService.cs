@@ -13,11 +13,13 @@ namespace Snera_Core.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PasswordHasher<string> _passwordHasher;
+        private readonly JwtService _tokenService;
 
-        public UserService(IUnitOfWork unitOfWork)
+        public UserService(IUnitOfWork unitOfWork,JwtService tokenService)
         {
             _unitOfWork = unitOfWork;
             _passwordHasher = new PasswordHasher<string>();
+            _tokenService = tokenService;
         }
 
         public async Task<User> RegisterUserAsync(UserRegisterModel dto)
@@ -72,7 +74,7 @@ namespace Snera_Core.Services
             return newUser;
         }
 
-        public async Task<User> LoginUserAsync(UserLoginModel dto)
+        public async Task<LoginResponseModel> LoginUserAsync(UserLoginModel dto)
         {
             var userRepo = _unitOfWork.Repository<User>();
             var userList = await userRepo.FindAsync(u => u.Email == dto.Email);
@@ -85,9 +87,16 @@ namespace Snera_Core.Services
             if (result != PasswordVerificationResult.Success)
                 throw new Exception("Invalid password.");
 
-            return user;
+            var token = _tokenService.CreateToken(dto);
+            var userResponse = new LoginResponseModel
+            {
+                LoginResponseString = "Login successful",
+                UserEmail = dto.Email,
+                AccessToken = token
+            };
+            return userResponse;
         }
-
+        
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             var userRepo = _unitOfWork.Repository<User>();
