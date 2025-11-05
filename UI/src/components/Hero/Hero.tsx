@@ -1,4 +1,4 @@
-
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import Sign from "../Signin/Sign";
 import Register from "../Register/Register";
@@ -7,7 +7,7 @@ import logo from "../../assets/snera-dark-remove-bg.png"
 
 
 const Hero: React.FC = () => {
-
+    const [activeForm, setActiveForm] = useState("");
 
     return (<>
 
@@ -21,25 +21,26 @@ const Hero: React.FC = () => {
                             <Link to='/Home' className=" text-[var(--text-primary)]  mx-5 text-2xl font-bold"><img src={logo} alt="" width={100} className=" text-[var(--text-primary)] " /></Link>
                             <div className="flex gap-5">
                                 <ThemeToggle />
-                                <Sign />
-                                <Register />
+                               <Sign onSwitch={() => setActiveForm("register")} />
+
+                                <Register onSwitch={()=> setActiveForm("signin")} />
 
                             </div>
                         </div>
                     </header>
                 </div>
             </nav>
-            <div className="text-center bg-[var(--bg-primary)] my-45">
-                <h1 className="text-[var(--text-primary)]  text-[3.50rem] mt-45 ">Where Skills Find Their Missing Piece</h1>
-                <p className="text-[var(--text-primary)] text-2xl mx-60 my-10" >The collaboration platform where developers and designers unite to build real projects, gain experience, and create something greater together.</p>
-                <button
-                    className="bg-[var(--accent-color)] text-[var(--button-text)] border-none px-[30px] py-[12px] text-[16px] cursor-pointer transition-all duration-300 ease-in-out hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)]"
+            <div className="text-center bg-[var(--bg-primary)] my-20 mb-40 ">
+                <h1 className="text-[var(--text-primary)]  text-[3.50rem]  ">Where Skills Find Their Missing Piece</h1>
+                <p className="text-[var(--text-secondary)] text-2xl mx-60 mb-14 mt-4" >The collaboration platform where developers and designers unite to build real projects, gain experience, and create something greater together.</p>
+                <button onClick={() => setActiveForm("register")}
+                    className="bg-[var(--accent-color)] text-[var(--button-text)] border-none px-[30px] py-[12px] text-[16px] cursor-pointer transition-all duration-300 ease-in-out hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)] font-semibold mt-10 "
                 >
                     Start Building Today</button>
-                <p className="my-1">Join thousands of developers already collaborating</p>
+                <p className="my-2 text-[var(--text-secondary)] ">Join thousands of developers already collaborating</p>
             </div>
             <section
-                className="relative min-h-screen bg-[var(--bg-section)] text-[var(--text-primary)] py-[80px] px-[40px] 
+                className="relative min-h-screen bg-[var(--bg-section)] text-[var(--text-primary)] py-[50px] px-[40px] pb-0 
               before:content-[''] before:absolute before:top-0 before:left-0 before:right-0 
               before:h-[20px] before:bg-gradient-to-b before:from-[var(--bg-primary)] before:to-[var(--bg-section)]"
             >
@@ -48,22 +49,22 @@ const Hero: React.FC = () => {
 
                 <div className="  w-[94vw] m-auto ">
                     <section
-                        className="relative mb-[60px] p-[40px] bg-transparent rounded-[12px] border border-[var(--section-border)] shadow-[0_4px_12px_var(--shadow-color)]"
+                        className="relative  pb-0 p-[40px]  bg-transparent rounded-[12px] border border-[var(--section-border)] shadow-[0_4px_12px_var(--shadow-color)]"
                     >
 
 
                         <h1 className="text-4xl font-bold pt-10 text-center">About SNERA</h1>
-                        <p className="text-lg py-10">SNERA is a revolutionary platform designed to bridge the gap between learning and real-world application. We connect talented individuals with complementary skills to collaborate on meaningful projects that benefit everyone involved.</p>
+                        <p className="text-lg py-10 text-[var(--text-secondary)]">SNERA is a revolutionary platform designed to bridge the gap between learning and real-world application. We connect talented individuals with complementary skills to collaborate on meaningful projects that benefit everyone involved.</p>
                         <h2 className="text-2xl font-bold  ">What SNERA Does</h2>
-                        <p className="text-lg py-5">
+                        <p className="text-lg py-5 text-[var(--text-secondary)]">
                             Our platform matches developers, designers, and other tech professionals to work together on projects ranging from portfolio pieces to real client work. We provide the tools, structure, and community support needed to turn ideas into finished products while building valuable experience.</p>
                         <h2 className="text-2xl font-bold" >Who Benefits from SNERA</h2>
-                        <p className="text-lg py-5">Students and recent graduates can build impressive portfolios and gain practical experience. Experienced professionals can find collaborators for side projects or explore new technologies. Small businesses can access affordable development services while supporting emerging talent.</p>
+                        <p className="text-lg py-5 text-[var(--text-secondary)]">Students and recent graduates can build impressive portfolios and gain practical experience. Experienced professionals can find collaborators for side projects or explore new technologies. Small businesses can access affordable development services while supporting emerging talent.</p>
                         <h2 className="text-2xl font-bold">How It Works</h2>
-                        <p className="text-lg py-5">Users create profiles highlighting their skills and interests. Our matching algorithm suggests compatible teammates based on project requirements and skill compatibility. Teams work together using our collaboration tools, with options to transition from learning projects to paid client work as they gain experience.</p>
+                        <p className="text-lg py-5 text-[var(--text-secondary)]">Users create profiles highlighting their skills and interests. Our matching algorithm suggests compatible teammates based on project requirements and skill compatibility. Teams work together using our collaboration tools, with options to transition from learning projects to paid client work as they gain experience.</p>
                     </section>
                 </div>
-            </section>
+            
 
             <div
                 className="
@@ -75,23 +76,24 @@ const Hero: React.FC = () => {
                             after:text-[24px] after:text-[var(--accent-color)] after:bg-[var(--bg-section)]
                             after:px-[10px] after:z-[2]
                         "
+
             ></div>
             <div className="grid [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] gap-[30px] my-[60px] mx-6">
 
 
                 <div
                     className="
-    p-[30px]
-    border border-[var(--border-color)]
-    rounded-[8px]
-    bg-[var(--card-bg)]
-    text-[var(--text-primary)]
-    transition-all duration-300 ease-in-out
-    cursor-pointer
-    hover:-translate-y-[8px]
-    hover:shadow-[0_12px_30px_var(--shadow-color)]
-    hover:border-[var(--text-secondary)]
-  "
+                                p-[30px]
+                                border border-[var(--border-color)]
+                                rounded-[8px]
+                                bg-[var(--card-bg)]
+                                text-[var(--text-primary)]
+                                transition-all duration-300 ease-in-out
+                                cursor-pointer
+                                hover:-translate-y-[8px]
+                                hover:shadow-[0_12px_30px_var(--shadow-color)]
+                                hover:border-[var(--text-secondary)]
+                            "
                 >
 
 
@@ -100,18 +102,18 @@ const Hero: React.FC = () => {
 
                 </div>
                 <div
-                    className="
-    p-[30px]
-    border border-[var(--border-color)]
-    rounded-[8px]
-    bg-[var(--card-bg)]
-    text-[var(--text-primary)]
-    transition-all duration-300 ease-in-out
-    cursor-pointer
-    hover:-translate-y-[8px]
-    hover:shadow-[0_12px_30px_var(--shadow-color)]
-    hover:border-[var(--text-secondary)]
-  "
+                                            className="
+                            p-[30px]
+                            border border-[var(--border-color)]
+                            rounded-[8px]
+                            bg-[var(--card-bg)]
+                            text-[var(--text-primary)]
+                            transition-all duration-300 ease-in-out
+                            cursor-pointer
+                            hover:-translate-y-[8px]
+                            hover:shadow-[0_12px_30px_var(--shadow-color)]
+                            hover:border-[var(--text-secondary)]
+                        "
                 >
 
 
@@ -120,19 +122,19 @@ const Hero: React.FC = () => {
 
                 </div>
                 <div
-                    className="
-    p-[30px]
-    border border-[var(--border-color)]
-    rounded-[8px]
-    bg-[var(--card-bg)]
-    text-[var(--text-primary)]
-    transition-all duration-300 ease-in-out
-    cursor-pointer
-    hover:-translate-y-[8px]
-    hover:shadow-[0_12px_30px_var(--shadow-color)]
-    hover:border-[var(--text-secondary)]
-  "
-                >
+                                            className="
+                            p-[30px]
+                            border border-[var(--border-color)]
+                            rounded-[8px]
+                            bg-[var(--card-bg)]
+                            text-[var(--text-primary)]
+                            transition-all duration-300 ease-in-out
+                            cursor-pointer
+                            hover:-translate-y-[8px]
+                            hover:shadow-[0_12px_30px_var(--shadow-color)]
+                            hover:border-[var(--text-secondary)]
+                        "
+                                        >
 
 
                     <h4 className="mb-[15px] text-[20px] text-[var(--text-primary) font-extrabold ]">Learn & Earn</h4>
@@ -144,10 +146,10 @@ const Hero: React.FC = () => {
 
             </div>
             <div className="text-center pt-[60px] px-[40px] pb-[40px] ">
-                <h2 className="mb-[20px] text-[var(--text-primary)] text-[32px] font-extrabold ">Ready to Start Your Journey?</h2>
+                <h2 className="mb-[20px] text-[var(--text-primary)] text-[32px] font-bold ">Ready to Start Your Journey?</h2>
                 <p className="mb-[30px] text-[var(--text-secondary)] text-[18px] ">Join SNERA today and discover the power of collaborative development.</p>
                 <button
-                    className="px-[45px] py-[16px] text-[18px] bg-[var(--accent-color)] text-[var(--button-text)] border-2 border-[var(--accent-color)] transition-all duration-300 ease-in-out hover:bg-transparent hover:text-[var(--accent-color)] hover:border-[var(--accent-color)]"
+                    className="px-[45px] py-[16px] text-[18px] bg-[var(--accent-color)] text-[var(--button-text)] border-2 border-[var(--accent-color)] transition-all duration-300 ease-in-out hover:bg-transparent hover:text-[var(--accent-color)] hover:border-[var(--accent-color)] hover:-translate-y-0.5 "
                 >
                     Join Now - It's Free</button>
             </div>
@@ -188,9 +190,10 @@ const Hero: React.FC = () => {
                 </div>
 
             </footer>
+</section>
 
 
-
+            {activeForm === "register" && <Register onSwitch={() => setActiveForm("")} />}
 
 
         </div>
