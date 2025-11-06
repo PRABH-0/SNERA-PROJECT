@@ -1,39 +1,60 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import Sign from "../Signin/Sign";
+import { useState } from "react"; 
 import Register from "../Register/Register";
+import Sign from "../Signin/Sign";
 import ThemeToggle from "../Theme/ThemeToggle";
 import logo from "../../assets/snera-dark-remove-bg.png"
 
 
+
 const Hero: React.FC = () => {
-    const [activeForm, setActiveForm] = useState("");
+    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+    const [isSignOpen, setIsSignOpen] = useState(false)  
+const handleSwitch = () => {
+  if (isSignOpen) {
+    setIsSignOpen(false);
+    setIsRegisterOpen(true);
+  } else if (isRegisterOpen) {
+    setIsRegisterOpen(false);
+    setIsSignOpen(true);
+  }
+};
+
 
     return (<>
 
         <div>
             <nav>
-                <div className="navbar bg-[var(--bg-primary)]   sticky top-0 h-22" >
-                    <header className="flex justify-between items-center py-[20px] px-[40px] border-b border-[var(--border-color)] w-full">
+                <div className="navbar    sticky top-0 h-22" >
+                    <header className="flex justify-between items-center py-[20px] px-[40px] border-b shadow-lg border-[var(--border-color)] w-full">
 
 
                         <div className="flex-1 flex justify-between  ">
-                            <Link to='/Home' className=" text-[var(--text-primary)]  mx-5 text-2xl font-bold"><img src={logo} alt="" width={100} className=" text-[var(--text-primary)] " /></Link>
-                            <div className="flex gap-5">
+                            <div className=" text-[var(--text-primary)]  mx-5 text-2xl font-bold"><img src={logo} alt="" width={100} className=" text-[var(--text-primary)] " /></div>
+                            <div className="flex gap-2 items-center">
                                 <ThemeToggle />
-                               <Sign onSwitch={() => setActiveForm("register")} />
+                                <button
+                                    onClick={() => setIsSignOpen(true)}
+                                    className="bg-[var(--accent-color)] text-[var(--button-text)] cursor-pointer border-none  h-9 w-20 transition-all duration-300 ease-in-out  hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)]"
+                                >
+                                    Sign In
+                                </button> 
+                                <button
+                                    onClick={() => setIsRegisterOpen(true)}
+                                    className="bg-[var(--accent-color)] text-[var(--button-text)] cursor-pointer border-none h-9 w-26  transition-all duration-300 ease-in-out hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)]"
+                                >
+                                    Get Started
+                                </button> 
 
-                                <Register onSwitch={()=> setActiveForm("signin")} />
 
                             </div>
                         </div>
                     </header>
                 </div>
             </nav>
-            <div className="text-center bg-[var(--bg-primary)] my-20 mb-40 ">
+            <div className="text-center   my-20 mb-40 ">
                 <h1 className="text-[var(--text-primary)]  text-[3.50rem]  ">Where Skills Find Their Missing Piece</h1>
                 <p className="text-[var(--text-secondary)] text-2xl mx-60 mb-14 mt-4" >The collaboration platform where developers and designers unite to build real projects, gain experience, and create something greater together.</p>
-                <button onClick={() => setActiveForm("register")}
+                <button onClick={() => setIsRegisterOpen(true)}
                     className="bg-[var(--accent-color)] text-[var(--button-text)] border-none px-[30px] py-[12px] text-[16px] cursor-pointer transition-all duration-300 ease-in-out hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)] font-semibold mt-10 "
                 >
                     Start Building Today</button>
@@ -64,10 +85,10 @@ const Hero: React.FC = () => {
                         <p className="text-lg py-5 text-[var(--text-secondary)]">Users create profiles highlighting their skills and interests. Our matching algorithm suggests compatible teammates based on project requirements and skill compatibility. Teams work together using our collaboration tools, with options to transition from learning projects to paid client work as they gain experience.</p>
                     </section>
                 </div>
-            
 
-            <div
-                className="
+
+                <div
+                    className="
                             relative h-px my-[60px]
                             bg-[linear-gradient(to_right,transparent,var(--section-border),transparent)]
                             before:content-[''] before:absolute before:top-[-10px] before:left-1/2 before:-translate-x-1/2
@@ -77,12 +98,12 @@ const Hero: React.FC = () => {
                             after:px-[10px] after:z-[2]
                         "
 
-            ></div>
-            <div className="grid [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] gap-[30px] my-[60px] mx-6">
+                ></div>
+                <div className="grid [grid-template-columns:repeat(auto-fit,minmax(300px,1fr))] gap-[30px] my-[60px] mx-6">
 
 
-                <div
-                    className="
+                    <div
+                        className="
                                 p-[30px]
                                 border border-[var(--border-color)]
                                 rounded-[8px]
@@ -94,15 +115,15 @@ const Hero: React.FC = () => {
                                 hover:shadow-[0_12px_30px_var(--shadow-color)]
                                 hover:border-[var(--text-secondary)]
                             "
-                >
+                    >
 
 
-                    <h4 className="mb-[15px] text-[20px] text-[var(--text-primary) font-extrabold ]">For Students & Freshers</h4>
-                    <p>Find technical partners, build standout portfolio projects, and gain the teamwork experience employers crave. Work on real-world challenges and develop the soft skills that are essential in today's workplace.</p>
+                        <h4 className="mb-[15px] text-[20px] text-[var(--text-primary) font-extrabold ]">For Students & Freshers</h4>
+                        <p>Find technical partners, build standout portfolio projects, and gain the teamwork experience employers crave. Work on real-world challenges and develop the soft skills that are essential in today's workplace.</p>
 
-                </div>
-                <div
-                                            className="
+                    </div>
+                    <div
+                        className="
                             p-[30px]
                             border border-[var(--border-color)]
                             rounded-[8px]
@@ -114,15 +135,15 @@ const Hero: React.FC = () => {
                             hover:shadow-[0_12px_30px_var(--shadow-color)]
                             hover:border-[var(--text-secondary)]
                         "
-                >
+                    >
 
 
-                    <h4 className="mb-[15px] text-[20px] text-[var(--text-primary) font-extrabold ]">For Small Businesses</h4>
-                    <p>Get your app or website developed by skilled teams at affordable rates while supporting emerging talent. Access a diverse pool of creative minds ready to bring your vision to life with fresh perspectives.</p>
+                        <h4 className="mb-[15px] text-[20px] text-[var(--text-primary) font-extrabold ]">For Small Businesses</h4>
+                        <p>Get your app or website developed by skilled teams at affordable rates while supporting emerging talent. Access a diverse pool of creative minds ready to bring your vision to life with fresh perspectives.</p>
 
-                </div>
-                <div
-                                            className="
+                    </div>
+                    <div
+                        className="
                             p-[30px]
                             border border-[var(--border-color)]
                             rounded-[8px]
@@ -134,66 +155,83 @@ const Hero: React.FC = () => {
                             hover:shadow-[0_12px_30px_var(--shadow-color)]
                             hover:border-[var(--text-secondary)]
                         "
-                                        >
+                    >
 
 
-                    <h4 className="mb-[15px] text-[20px] text-[var(--text-primary) font-extrabold ]">Learn & Earn</h4>
-                    <p>Start with learning collaborations, then progress to paid client projects as your team gains experience. Build your reputation and transition from learning to earning in a supportive environment.</p>
+                        <h4 className="mb-[15px] text-[20px] text-[var(--text-primary) font-extrabold ]">Learn & Earn</h4>
+                        <p>Start with learning collaborations, then progress to paid client projects as your team gains experience. Build your reputation and transition from learning to earning in a supportive environment.</p>
+
+                    </div>
+
+
 
                 </div>
-
-
-
-            </div>
-            <div className="text-center pt-[60px] px-[40px] pb-[40px] ">
-                <h2 className="mb-[20px] text-[var(--text-primary)] text-[32px] font-bold ">Ready to Start Your Journey?</h2>
-                <p className="mb-[30px] text-[var(--text-secondary)] text-[18px] ">Join SNERA today and discover the power of collaborative development.</p>
-                <button
-                    className="px-[45px] py-[16px] text-[18px] bg-[var(--accent-color)] text-[var(--button-text)] border-2 border-[var(--accent-color)] transition-all duration-300 ease-in-out hover:bg-transparent hover:text-[var(--accent-color)] hover:border-[var(--accent-color)] hover:-translate-y-0.5 "
-                >
-                    Join Now - It's Free</button>
-            </div>
-            <footer className="text-center py-[20px] px-[40px] text-[var(--text-tertiary)] border-t border-[var(--border-color)] mt-[10px]">
-                <p className="mb-[10px] text-[14px]">SNERA - From the Greek "Synergy": Creating together what we cannot create alone.
-                </p>
-                <div className="footer-links">
-                    <a
-                        href="#"
-                        className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
+                <div className="text-center pt-[60px] px-[40px] pb-[40px] ">
+                    <h2 className="mb-[20px] text-[var(--text-primary)] text-[32px] font-bold ">Ready to Start Your Journey?</h2>
+                    <p className="mb-[30px] text-[var(--text-secondary)] text-[18px] ">Join SNERA today and discover the power of collaborative development.</p>
+                    <button onClick={() => setIsRegisterOpen(true)}
+                        className="px-[45px] py-[16px] text-[18px] bg-[var(--accent-color)] text-[var(--button-text)] border-2 border-[var(--accent-color)] transition-all duration-300 ease-in-out hover:bg-transparent hover:text-[var(--accent-color)] hover:border-[var(--accent-color)] hover:-translate-y-0.5 "
                     >
-                        About
-                    </a>
-                    <a
-                        href="#"
-                        className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
-                    >
-                        Contact
-                    </a>
-                    <a
-                        href="#"
-                        className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
-                    >
-                        Privacy
-                    </a>
-                    <a
-                        href="#"
-                        className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
-                    >
-                        Terms
-                    </a>
-                    <a
-                        href="#"
-                        className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
-                    >
-                        blog
-                    </a>
+                        Join Now - It's Free</button>
                 </div>
+                <footer className="text-center py-[20px] px-[40px] text-[var(--text-tertiary)] border-t border-[var(--border-color)] mt-[10px]">
+                    <p className="mb-[10px] text-[14px]">SNERA - From the Greek "Synergy": Creating together what we cannot create alone.
+                    </p>
+                    <div className="footer-links">
+                        <a
+                            href="#"
+                            className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
+                        >
+                            About
+                        </a>
+                        <a
+                            href="#"
+                            className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
+                        >
+                            Contact
+                        </a>
+                        <a
+                            href="#"
+                            className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
+                        >
+                            Privacy
+                        </a>
+                        <a
+                            href="#"
+                            className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
+                        >
+                            Terms
+                        </a>
+                        <a
+                            href="#"
+                            className="mx-[10px] text-[14px] text-[var(--text-tertiary)] no-underline transition-colors duration-300 ease-in-out hover:text-[var(--text-primary)]"
+                        >
+                            blog
+                        </a>
+                    </div>
 
-            </footer>
-</section>
+                </footer>
+            </section>
 
 
-            {activeForm === "register" && <Register onSwitch={() => setActiveForm("")} />}
+             {/* Sign Modal */}
+          <Sign
+            isOpen={isSignOpen}
+            onClose={() => setIsSignOpen(false)}
+            onSwitch={handleSwitch}
+            defaultTab="signin" 
+          />
+
+            {/* Register popup render */}
+            {isRegisterOpen && (
+                <Register
+                    isOpen={true}
+                    onClose={() => setIsRegisterOpen(false)}
+                    onSwitch={handleSwitch}
+                    defaultTab="getstarted"
+                />
+            )}
+
 
 
         </div>

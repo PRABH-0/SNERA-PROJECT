@@ -9,8 +9,7 @@ import Chat from './components/Chat/Chat';
 import Profile from './components/Profile/Profile';
 import About from './components/About/About';
 import More from './components/More/More';
-import Hero from './components/Hero/Hero';
-import AuthContainer from './components/authContainer/AuthContainer';
+import Hero from './components/Hero/Hero'; 
 
 const Layout: React.FC = () => {
   return (
@@ -24,8 +23,7 @@ const Layout: React.FC = () => {
 };
 
 const router = createBrowserRouter([
-  { path: "/", element: <Hero /> },
-   { path: "/auth", element: <AuthContainer /> },
+  { path: "/", element: <Hero /> }, 
   {
     element: <Layout />,  // Navbar common for all
     children: [
