@@ -1,8 +1,7 @@
 import { useState } from "react"; 
 import Register from "../Register/Register";
 import Sign from "../Signin/Sign";
-import ThemeToggle from "../Theme/ThemeToggle";
-import logo from "../../assets/snera-dark-remove-bg.png"
+import ThemeToggle from "../Theme/ThemeToggle"; 
 
 
 
