@@ -1,4 +1,4 @@
-import { useState } from "react"; 
+import { useState } from "react";
 import Sign from "../Signin/Sign";
 import ThemeToggle from "../Theme/ThemeToggle";
 import logo from "../../assets/snera-dark-remove-bg.png"
@@ -6,17 +6,17 @@ import logo from "../../assets/snera-dark-remove-bg.png"
 
 import React from 'react'
 
-const Hero:React.FC = () => {
-  
+const Hero: React.FC = () => {
 
-// ✅ single unified modal state + default tab memory
-const [isAuthOpen, setIsAuthOpen] = useState(false);
-const [defaultTab, setDefaultTab] = useState<'signin' | 'getstarted'>('signin');
 
-const openAuth = (tab: 'signin' | 'getstarted') => {
-  setDefaultTab(tab);     // sets which tab to show first
-  setIsAuthOpen(true);    // opens the popup
-};
+    // ✅ single unified modal state + default tab memory
+    const [isAuthOpen, setIsAuthOpen] = useState(false);
+    const [defaultTab, setDefaultTab] = useState<'signin' | 'getstarted'>('signin');
+
+    const openAuth = (tab: 'signin' | 'getstarted') => {
+        setDefaultTab(tab);     // sets which tab to show first
+        setIsAuthOpen(true);    // opens the popup
+    };
 
 
 
@@ -39,7 +39,7 @@ const openAuth = (tab: 'signin' | 'getstarted') => {
                                     Sign In
                                 </button>
                                 <button
-                                    onClick={() => openAuth('getstarted')} 
+                                    onClick={() => openAuth('getstarted')}
                                     className="bg-[var(--accent-color)] text-[var(--button-text)] cursor-pointer border-none h-9 w-26  transition-all duration-300 ease-in-out hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)]"
                                 >
                                     Get Started
