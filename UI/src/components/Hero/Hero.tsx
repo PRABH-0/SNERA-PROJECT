@@ -1,21 +1,43 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sign from "../Signin/Sign";
 import ThemeToggle from "../Theme/ThemeToggle";
-import logo from "../../assets/snera-dark-remove-bg.png"
-
+import logodark from "../../assets/snera-dark-remove-bg.png"
+import logolight from "../../assets/Snera-canva-2__1_-crop-removebg-light.png"
 
 import React from 'react'
 
 const Hero: React.FC = () => {
+    const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+ 
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      if (document.documentElement.classList.contains("dark")) {
+        setTheme("dark");
+      } else {
+        setTheme("light");
+      }
+    });
+ 
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+ 
+    if (document.documentElement.classList.contains("dark")) {
+      setTheme("dark");
+    } else {
+      setTheme("light");
+    }
 
+    return () => observer.disconnect();
+  }, []);
 
-    // ✅ single unified modal state + default tab memory
     const [isAuthOpen, setIsAuthOpen] = useState(false);
     const [defaultTab, setDefaultTab] = useState<'signin' | 'getstarted'>('signin');
 
     const openAuth = (tab: 'signin' | 'getstarted') => {
-        setDefaultTab(tab);     // sets which tab to show first
-        setIsAuthOpen(true);    // opens the popup
+        setDefaultTab(tab);
+        setIsAuthOpen(true);
     };
 
 
@@ -29,8 +51,14 @@ const Hero: React.FC = () => {
 
 
                         <div className="flex-1 flex justify-between  ">
-                            <div className=" text-[var(--text-primary)]  mx-5 text-2xl font-bold"><img src={logo} alt="" width={100} className=" text-[var(--text-primary)] " /></div>
-                            <div className="flex gap-2 items-center">
+                            <img 
+                                src={theme === "dark" ? logolight : logodark}
+                                alt="SNERA Logo"
+                                width={100}
+                                className="cursor-pointer transition-all duration-300"
+                            />
+
+                            <div className="flex gap-4 items-center">
                                 <ThemeToggle />
                                 <button
                                     onClick={() => openAuth('signin')}
@@ -213,8 +241,7 @@ const Hero: React.FC = () => {
                 </footer>
             </section>
 
-
-            {/* remove both Sign and Register popups and use only this 👇 */}
+ 
             <Sign
                 isOpen={isAuthOpen}
                 onClose={() => setIsAuthOpen(false)}
