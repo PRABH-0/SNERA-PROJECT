@@ -1,22 +1,23 @@
 import { useState } from "react"; 
-import Register from "../Register/Register";
 import Sign from "../Signin/Sign";
-import ThemeToggle from "../Theme/ThemeToggle"; 
+import ThemeToggle from "../Theme/ThemeToggle";
+import logo from "../../assets/snera-dark-remove-bg.png"
 
 
+import React from 'react'
 
-const Hero: React.FC = () => {
-    const [isRegisterOpen, setIsRegisterOpen] = useState(false);
-    const [isSignOpen, setIsSignOpen] = useState(false)  
-const handleSwitch = () => {
-  if (isSignOpen) {
-    setIsSignOpen(false);
-    setIsRegisterOpen(true);
-  } else if (isRegisterOpen) {
-    setIsRegisterOpen(false);
-    setIsSignOpen(true);
-  }
+const Hero:React.FC = () => {
+  
+
+// ✅ single unified modal state + default tab memory
+const [isAuthOpen, setIsAuthOpen] = useState(false);
+const [defaultTab, setDefaultTab] = useState<'signin' | 'getstarted'>('signin');
+
+const openAuth = (tab: 'signin' | 'getstarted') => {
+  setDefaultTab(tab);     // sets which tab to show first
+  setIsAuthOpen(true);    // opens the popup
 };
+
 
 
     return (<>
@@ -32,17 +33,17 @@ const handleSwitch = () => {
                             <div className="flex gap-2 items-center">
                                 <ThemeToggle />
                                 <button
-                                    onClick={() => setIsSignOpen(true)}
+                                    onClick={() => openAuth('signin')}
                                     className="bg-[var(--accent-color)] text-[var(--button-text)] cursor-pointer border-none  h-9 w-20 transition-all duration-300 ease-in-out  hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)]"
                                 >
                                     Sign In
-                                </button> 
+                                </button>
                                 <button
-                                    onClick={() => setIsRegisterOpen(true)}
+                                    onClick={() => openAuth('getstarted')} 
                                     className="bg-[var(--accent-color)] text-[var(--button-text)] cursor-pointer border-none h-9 w-26  transition-all duration-300 ease-in-out hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)]"
                                 >
                                     Get Started
-                                </button> 
+                                </button>
 
 
                             </div>
@@ -53,7 +54,7 @@ const handleSwitch = () => {
             <div className="text-center   my-20 mb-40 ">
                 <h1 className="text-[var(--text-primary)]  text-[3.50rem]  ">Where Skills Find Their Missing Piece</h1>
                 <p className="text-[var(--text-secondary)] text-2xl mx-60 mb-14 mt-4" >The collaboration platform where developers and designers unite to build real projects, gain experience, and create something greater together.</p>
-                <button onClick={() => setIsRegisterOpen(true)}
+                <button onClick={() => openAuth('getstarted')}
                     className="bg-[var(--accent-color)] text-[var(--button-text)] border-none px-[30px] py-[12px] text-[16px] cursor-pointer transition-all duration-300 ease-in-out hover:bg-[var(--accent-hover)] hover:-translate-y-[2px] hover:shadow-[0_6px_16px_var(--shadow-color)] font-semibold mt-10 "
                 >
                     Start Building Today</button>
@@ -168,7 +169,7 @@ const handleSwitch = () => {
                 <div className="text-center pt-[60px] px-[40px] pb-[40px] ">
                     <h2 className="mb-[20px] text-[var(--text-primary)] text-[32px] font-bold ">Ready to Start Your Journey?</h2>
                     <p className="mb-[30px] text-[var(--text-secondary)] text-[18px] ">Join SNERA today and discover the power of collaborative development.</p>
-                    <button onClick={() => setIsRegisterOpen(true)}
+                    <button onClick={() => openAuth('getstarted')}
                         className="px-[45px] py-[16px] text-[18px] bg-[var(--accent-color)] text-[var(--button-text)] border-2 border-[var(--accent-color)] transition-all duration-300 ease-in-out hover:bg-transparent hover:text-[var(--accent-color)] hover:border-[var(--accent-color)] hover:-translate-y-0.5 "
                     >
                         Join Now - It's Free</button>
@@ -213,23 +214,12 @@ const handleSwitch = () => {
             </section>
 
 
-             {/* Sign Modal */}
-          <Sign
-            isOpen={isSignOpen}
-            onClose={() => setIsSignOpen(false)}
-            onSwitch={handleSwitch}
-            defaultTab="signin" 
-          />
-
-            {/* Register popup render */}
-            {isRegisterOpen && (
-                <Register
-                    isOpen={true}
-                    onClose={() => setIsRegisterOpen(false)}
-                    onSwitch={handleSwitch}
-                    defaultTab="getstarted"
-                />
-            )}
+            {/* remove both Sign and Register popups and use only this 👇 */}
+            <Sign
+                isOpen={isAuthOpen}
+                onClose={() => setIsAuthOpen(false)}
+                defaultTab={defaultTab}
+            />
 
 
 
