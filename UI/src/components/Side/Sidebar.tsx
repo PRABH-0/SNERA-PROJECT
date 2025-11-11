@@ -13,9 +13,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ show, setShowSidebar }) => {
   return (
-    <>
-    
-      {/* Overlay for mobile */}
+    <> 
       {show && (
         <div
           onClick={() => setShowSidebar(false)}
@@ -24,12 +22,12 @@ const Sidebar: React.FC<SidebarProps> = ({ show, setShowSidebar }) => {
       )}
 
       <div
-        className={`fixed top-14 bottom-0 left-0 w-12 bg-[#2c2c2c] z-50 transform 
+        className={`fixed top-16 bottom-0 left-0 w-13  bg-[var(--bg-secondary)] z-50 transform border-r border-[var(--border-color)] 
         transition-transform duration-300 
         ${show ? "translate-x-0" : "-translate-x-full"} 
-        md:translate-x-0 md:w-12`}
+        md:translate-x-0 md:w-13 `}
       >
-        <ul className="flex flex-col gap-3 mt-4">
+        <ul className="flex flex-col gap-4 mt-4">
           <More />
           <Home />
           <Match />

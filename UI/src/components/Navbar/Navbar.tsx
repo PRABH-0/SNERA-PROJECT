@@ -1,28 +1,53 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Searchbar from '../ResponsiveSearch/searchbar'
 import HamBurger from '../Hamburger/HamBurger'
-import logo from '../../assets/synera-2.png';
+
+import logodark from "../../assets/snera-dark-remove-bg.png"
+import logolight from "../../assets/Snera-canva-2__1_-crop-removebg-light.png"
 import ThemeToggle from '../Theme/ThemeToggle';
 
 
 const Navbar: React.FC = () => {
-    console.log("Navbar Rendered");
+    const [theme, setTheme] = useState<string | null>(null);
+
+    useEffect(() => { 
+        const savedTheme = localStorage.getItem("theme");
+
+        if (savedTheme === "dark" || document.documentElement.classList.contains("dark")) {
+            setTheme("dark");
+            document.documentElement.classList.add("dark");
+        } else {
+            setTheme("light");
+            document.documentElement.classList.remove("dark");
+        }
+ 
+        const observer = new MutationObserver(() => {
+            setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
+        });
+
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ["class"],
+        });
+
+        return () => observer.disconnect();
+    }, []);
+
+
 
     return (
         <div>
-            <div className="fixed top-0 left-0 w-full bg-[#2c2c2c]  flex items-center justify-between  z-50 h-14 px-2">
+            <div className="fixed top-0 left-0 w-full bg-[var(--bg-secondary)] border-b border-[var(--border-color)]  flex items-center justify-between  z-50 h-16 px-2">
 
                 <HamBurger />
-                <div className=" text-[#f2ffff] mx-2 text-lg font-medium md:absolute left-0   "><img className='min-w-25 max-w-25' src={logo} alt="" /></div>
+                <div className=" text-[#f2ffff] mx-6 text-lg font-medium md:absolute left-0   "><img className='min-w-25 max-w-25' src={theme === "dark" ? logolight : logodark} alt="SNERA" /></div>
                 <div className='flex justify-between items-center md:w-[73vw] '>
-                    <ThemeToggle/>
                     <Searchbar />
                     <div className="  flex justify-end items-center ">
+                        <ThemeToggle />
+
                         <div className="dropdown ">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeLinejoin="round" strokeLinecap="round" strokeWidth="2" fill="#ffffff" stroke="none" className="inline-block size-5.5 my-1.5  cursor-pointer"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
-                        </div>
-                        <div className="dropdown ">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" fill="#ffffff" stroke="none" className="inline-block size-5.5 my-1.5 w-12 cursor-pointer"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" /></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" fill="#ffffff" stroke="none" className="fill-[var(--icon-color)] hover:fill-[var(--icon-hover)] inline-block size-5.5 my-1.5 w-6 mx-2  mr-2 cursor-pointer"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" /></svg>
                         </div>
                         <div className="dropdown">
                             <div className="relative group w-10">

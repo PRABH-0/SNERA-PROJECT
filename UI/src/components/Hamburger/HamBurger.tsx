@@ -15,8 +15,8 @@ const HamBurger: React.FC = () => {
         className="inline-block md:hidden mx-2 cursor-pointer"
       >
         <path
-          d="M20 5H4a1 1 0 000 2h16a1 1 0 100-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Z"
-          fill="#FFFFFF"
+          d="M20 5H4a1 1 0 000 2h16a1 1 0 100-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Zm0 6H4a1 1 0 000 2h16a1 1 0 000-2Z" 
+          className="fill-[var(--accent-hover)]"
         ></path>
       </svg>
 
