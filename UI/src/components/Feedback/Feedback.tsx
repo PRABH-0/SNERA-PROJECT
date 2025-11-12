@@ -1,12 +1,12 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-const More: React.FC = () => {
+const Feedback: React.FC = () => {
   return (
     <div>
       <li>
         <NavLink
-          to="/More"
-          data-tip="More"
+          to="/Feedback"
+          data-tip="Feedback"
           className={({ isActive }) => `
     transition-colors mx-3 my-1 tooltip tooltip-right  
     ${isActive ? "text-[var(--icon-hover)]" : ""}
@@ -23,10 +23,11 @@ const More: React.FC = () => {
                   : "fill-[var(--icon-color)] hover:fill-[var(--icon-hover)]"
                   } transition-all duration-300 hover:scale-110 inline-block size-7 mt-1.2`}
               >
-                <path d="M 4 13 h 6 c 0.55 0 1 -0.45 1 -1 V 4 c 0 -0.55 -0.45 -1 -1 -1 H 4 c -0.55 0 -1 0.45 -1 1 v 8 c 0 0.55 0.45 1 1 1 Z m 0 8 h 6 c 0.55 0 1 -0.45 1 -1 v -4 c 0 -0.55 -0.45 -1 -1 -1 H 4 c -0.55 0 -1 0.45 -1 1 v 4 c 0 0.55 0.45 1 1 1 Z m 10 0 h 6 c 0.55 0 1 -0.45 1 -1 v -8 c 0 -0.55 -0.45 -1 -1 -1 h -6 c -0.55 0 -1 0.45 -1 1 v 8 c 0 0.55 0.45 1 1 1 Z M 13 4 v 4 c 0 0.55 0.45 1 1 1 h 6 c 0.55 0 1 -0.45 1 -1 V 4 c 0 -0.55 -0.45 -1 -1 -1 h -6 c -0.55 0 -1 0.45 -1 1 Z"></path>
+                 <path
+                    d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 12h-2v-2h2v2zm0-4h-2V6h2v4z" />
               </svg>
 
-              <span className="hidden text-white px-3">More</span>
+              <span className="hidden text-white px-3">Feedback</span>
             </>
           )}
         </NavLink>
@@ -36,4 +37,4 @@ const More: React.FC = () => {
   )
 }
 
-export default More
+export default Feedback

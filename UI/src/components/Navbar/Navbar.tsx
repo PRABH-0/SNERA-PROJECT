@@ -40,7 +40,7 @@ const Navbar: React.FC = () => {
             <div className="fixed top-0 left-0 w-full bg-[var(--bg-secondary)] border-b border-[var(--border-color)]  flex items-center justify-between  z-50 h-16 px-2">
 
                 <HamBurger />
-                <div className=" text-[#f2ffff] mx-6 text-lg font-medium md:absolute left-0   "><img className='min-w-25 max-w-25' src={theme === "dark" ? logolight : logodark} alt="SNERA" /></div>
+                <div className=" text-[#f2ffff] mx-6 text-lg font-medium md:absolute left-0   "><img className='min-w-27 max-w-27' src={theme === "dark" ? logolight : logodark} alt="SNERA" /></div>
                 <div className='flex justify-between items-center md:w-[73vw] '>
                     <Searchbar />
                     <div className="  flex justify-end items-center ">

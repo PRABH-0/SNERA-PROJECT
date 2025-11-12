@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Sign from "../Signin/Sign";
+import Sign from "../Sign/Sign";
 import ThemeToggle from "../Theme/ThemeToggle";
 import logodark from "../../assets/snera-dark-remove-bg.png"
 import logolight from "../../assets/Snera-canva-2__1_-crop-removebg-light.png"

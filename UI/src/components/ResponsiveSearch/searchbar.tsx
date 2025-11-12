@@ -8,7 +8,7 @@ const Searchbar: React.FC = () => {
         <div className="flex items-center ">
             {/* Desktop Search */}
 
-            <input type="text" placeholder='Search resources...' className="text-[var(--text-primary)] bg-[var(--bg-tertiary)] border border-[var(--border-color)] w-120  p-2 pl-3 rounded-lg placeholder:text-[var(--text-secondary)] text-[16px] hidden md:flex " />
+            <input type="text" placeholder='Search resources...' className="text-[var(--text-primary)] bg-[var(--bg-tertiary)] border border-[var(--border-color)] w-120  p-[6px] pl-3 rounded-lg placeholder:text-[var(--text-secondary)] text-[16px] hidden md:flex " />
 
             {/* Mobile Icon */}
             <button

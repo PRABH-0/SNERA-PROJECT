@@ -8,8 +8,10 @@ import Match from './components/Match/Match';
 import Chat from './components/Chat/Chat';
 import Profile from './components/Profile/Profile';
 import About from './components/About/About';
-import More from './components/More/More';
+import Projects from './components/Projects/Projects';
 import Hero from './components/Hero/Hero'; 
+import Teams from './components/Teams/Teams';
+import Feedback from './components/Feedback/Feedback';
 
 const Layout: React.FC = () => {
   return (
@@ -28,10 +30,12 @@ const router = createBrowserRouter([
     element: <Layout />,  // Navbar common for all
     children: [
       { path: "/Home", element: <Home /> },
-      { path: "/More", element: <More /> },
       { path: "/Match", element: <Match /> },
       { path: "/Chat", element: <Chat /> },
       { path: "/Profile", element: <Profile /> },
+      { path: "/Projects", element: <Projects /> },
+      { path: "/Teams", element: <Teams /> },
+      { path: "/Feedback", element: <Feedback /> },
       { path: "/About", element: <About /> },
     ],
   },

@@ -4,7 +4,9 @@ import Match from "../Match/Match";
 import Chat from "../Chat/Chat";
 import Profile from "../Profile/Profile";
 import About from "../About/About";
-import More from "../More/More";
+import Projects from "../Projects/Projects"; 
+import Teams from "../Teams/Teams";
+import Feedback from "../Feedback/Feedback";
 
 interface SidebarProps {
   show: boolean;
@@ -27,12 +29,14 @@ const Sidebar: React.FC<SidebarProps> = ({ show, setShowSidebar }) => {
         ${show ? "translate-x-0" : "-translate-x-full"} 
         md:translate-x-0 md:w-13 `}
       >
-        <ul className="flex flex-col gap-4 mt-4">
-          <More />
+        <ul className="flex flex-col gap-3 mt-4">
           <Home />
           <Match />
           <Chat />
           <Profile />
+          <Projects />
+          <Teams />
+          <Feedback />
           <About />
         </ul>
       </div>
