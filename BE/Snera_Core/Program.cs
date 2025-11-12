@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Snera_Core.Data;
+using Snera_Core.Interface;
 using Snera_Core.Interfaces;
 using Snera_Core.Repositories;
 using Snera_Core.Services;
@@ -67,6 +68,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IPostService, PostService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<UserService>();
 

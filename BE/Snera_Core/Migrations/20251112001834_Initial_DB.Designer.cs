@@ -12,7 +12,7 @@ using Snera_Core.Data;
 namespace Snera_Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20251107103435_Initial_DB")]
+    [Migration("20251112001834_Initial_DB")]
     partial class Initial_DB
     {
         /// <inheritdoc />
@@ -130,6 +130,128 @@ namespace Snera_Core.Migrations
                     b.ToTable("UserPost");
                 });
 
+            modelBuilder.Entity("Snera_Core.Entities.PostEntities.UserPost_Details", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Author_Bio")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Author_Experience")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<double?>("Author_Rating")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Project_Duration")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Project_Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Record_State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Requirements")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Start_Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Team_Info")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Team_Size")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserPost_Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Weekly_Commitment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserPost_Id");
+
+                    b.ToTable("UserPost_Details");
+                });
+
+            modelBuilder.Entity("Snera_Core.Entities.PostEntities.UserPost_Roles", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("Post_Details_Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Record_State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role_Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role_Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Post_Details_Id");
+
+                    b.ToTable("UserPost_Roles");
+                });
+
+            modelBuilder.Entity("Snera_Core.Entities.PostEntities.UserPost_Skills", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Created_At")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("Post_Details_Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Record_State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Skill_Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Skill_Type")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Post_Details_Id");
+
+                    b.ToTable("UserPost_Skills");
+                });
+
             modelBuilder.Entity("Snera_Core.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -200,6 +322,39 @@ namespace Snera_Core.Migrations
                     b.ToTable("UserSkills");
                 });
 
+            modelBuilder.Entity("Snera_Core.Entities.PostEntities.UserPost_Details", b =>
+                {
+                    b.HasOne("Snera_Core.Entities.PostEntities.UserPost", "UserPost")
+                        .WithMany()
+                        .HasForeignKey("UserPost_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserPost");
+                });
+
+            modelBuilder.Entity("Snera_Core.Entities.PostEntities.UserPost_Roles", b =>
+                {
+                    b.HasOne("Snera_Core.Entities.PostEntities.UserPost_Details", "UserPost_Details")
+                        .WithMany("Post_Roles")
+                        .HasForeignKey("Post_Details_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserPost_Details");
+                });
+
+            modelBuilder.Entity("Snera_Core.Entities.PostEntities.UserPost_Skills", b =>
+                {
+                    b.HasOne("Snera_Core.Entities.PostEntities.UserPost_Details", "UserPost_Details")
+                        .WithMany("Post_Skills")
+                        .HasForeignKey("Post_Details_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("UserPost_Details");
+                });
+
             modelBuilder.Entity("Snera_Core.Entities.UserSkill", b =>
                 {
                     b.HasOne("Snera_Core.Entities.User", null)
@@ -207,6 +362,13 @@ namespace Snera_Core.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("Snera_Core.Entities.PostEntities.UserPost_Details", b =>
+                {
+                    b.Navigation("Post_Roles");
+
+                    b.Navigation("Post_Skills");
                 });
 
             modelBuilder.Entity("Snera_Core.Entities.User", b =>

@@ -24,11 +24,9 @@ namespace Snera_Core.Services
 
         public async Task<User> RegisterUserAsync(UserRegisterModel dto)
         {
-            // Validate email format
             if (!Regex.IsMatch(dto.Email ?? "", @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
                 throw new Exception("Invalid email format.");
 
-            // Use the generic repository for User
             var userRepo = _unitOfWork.Repository<User>();
 
             var existingUserList = await userRepo.FindAsync(u => u.Email == dto.Email);
@@ -70,7 +68,7 @@ namespace Snera_Core.Services
                 }
             }
 
-            await _unitOfWork.CompleteAsync();
+            await _unitOfWork.SaveAllAsync();
             return newUser;
         }
 
@@ -90,6 +88,7 @@ namespace Snera_Core.Services
             var token = _tokenService.CreateToken(dto);
             var userResponse = new LoginResponseModel
             {
+                UserId = user.Id,
                 LoginResponseString = "Login successful",
                 UserEmail = dto.Email,
                 AccessToken = token

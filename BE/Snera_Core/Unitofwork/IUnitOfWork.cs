@@ -12,6 +12,6 @@ namespace Snera_Core.UnitOfWork
 
         IRepository<T> Repository<T>() where T : class;
 
-        Task<int> CompleteAsync();
+        Task<int> SaveAllAsync();
     }
 }

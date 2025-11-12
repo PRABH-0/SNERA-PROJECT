@@ -12,5 +12,6 @@
         public DateTime? Last_Edited_By {  get; set; }
         public string Record_State { get; set; } = "Active";
         public Guid User_Id { get; set; }
+
     }
 }
