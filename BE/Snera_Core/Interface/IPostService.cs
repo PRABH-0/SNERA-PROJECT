@@ -1,6 +1,9 @@
-﻿namespace Snera_Core.Interface
+﻿using Snera_Core.Models.UserPostModels;
+
+namespace Snera_Core.Interface
 {
-    public class IPostService
+    public interface IPostService
     {
+        Task<string> CreateUserPost(UserPostModel post);
     }
 }

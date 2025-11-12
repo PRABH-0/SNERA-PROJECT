@@ -87,6 +87,36 @@ namespace Snera_Core.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "UserPost_Details",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    UserPost_Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Project_Duration = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Weekly_Commitment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Start_Date = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    Requirements = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Team_Info = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Team_Size = table.Column<int>(type: "int", nullable: false),
+                    Author_Bio = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Author_Experience = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Author_Rating = table.Column<double>(type: "float", nullable: true),
+                    Project_Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Created_At = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Record_State = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPost_Details", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserPost_Details_UserPost_UserPost_Id",
+                        column: x => x.UserPost_Id,
+                        principalTable: "UserPost",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "UserSkills",
                 columns: table => new
                 {
@@ -105,6 +135,65 @@ namespace Snera_Core.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "UserPost_Roles",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Post_Details_Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Role_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Role_Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Created_At = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Record_State = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPost_Roles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserPost_Roles_UserPost_Details_Post_Details_Id",
+                        column: x => x.Post_Details_Id,
+                        principalTable: "UserPost_Details",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "UserPost_Skills",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Post_Details_Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Skill_Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Skill_Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Created_At = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Record_State = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_UserPost_Skills", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_UserPost_Skills_UserPost_Details_Post_Details_Id",
+                        column: x => x.Post_Details_Id,
+                        principalTable: "UserPost_Details",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPost_Details_UserPost_Id",
+                table: "UserPost_Details",
+                column: "UserPost_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPost_Roles_Post_Details_Id",
+                table: "UserPost_Roles",
+                column: "Post_Details_Id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserPost_Skills_Post_Details_Id",
+                table: "UserPost_Skills",
+                column: "Post_Details_Id");
+
             migrationBuilder.CreateIndex(
                 name: "IX_UserSkills_UserId",
                 table: "UserSkills",
@@ -121,13 +210,22 @@ namespace Snera_Core.Migrations
                 name: "PostSkills");
 
             migrationBuilder.DropTable(
-                name: "UserPost");
+                name: "UserPost_Roles");
+
+            migrationBuilder.DropTable(
+                name: "UserPost_Skills");
 
             migrationBuilder.DropTable(
                 name: "UserSkills");
 
             migrationBuilder.DropTable(
+                name: "UserPost_Details");
+
+            migrationBuilder.DropTable(
                 name: "Users");
+
+            migrationBuilder.DropTable(
+                name: "UserPost");
         }
     }
 }

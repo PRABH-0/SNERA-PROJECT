@@ -50,7 +50,7 @@ namespace Snera_Core.UnitOfWork
             }
         }
 
-        public async Task<int> CompleteAsync()
+        public async Task<int> SaveAllAsync()
         {
             return await _context.SaveChangesAsync();
         }
