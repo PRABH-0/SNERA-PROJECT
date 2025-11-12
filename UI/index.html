@@ -11,25 +11,7 @@
 <body>
   <div id="root"></div>
   <script type="module" src="/src/main.tsx"></script>
-  <!-- <script>
-    (function () {
-      try {
-        const stored = localStorage.getItem('theme'); // 'dark'|'light' or null
-        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const theme = stored || (prefersDark ? 'dark' : 'light');
-
-        document.documentElement.classList.remove('light-mode', 'dark-mode');
-        document.documentElement.classList.add(theme === 'dark' ? 'dark-mode' : 'light-mode');
-
-        // also add Tailwind's .dark for compatibility with dark: utilities
-        if (theme === 'dark') document.documentElement.classList.add('dark');
-        else document.documentElement.classList.remove('dark');
-
-        // DaisyUI
-        document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
-      } catch (e) { }
-    })();
-  </script> -->
+   
 
 </body>
 
