@@ -2,6 +2,7 @@
 using Snera_Core.Entities.PostEntities;
 using Snera_Core.Interface;
 using Snera_Core.Interfaces;
+using Snera_Core.Models;
 using Snera_Core.Models.UserPostModels;
 using Snera_Core.UnitOfWork;
 
@@ -26,7 +27,7 @@ namespace Snera_Core.Services
             _rolesRepository = _unitOfWork.Repository<UserPost_Roles>();
         }
 
-        public async Task<string> CreateUserPost(UserPostModel post)
+        public async Task<string> CreateUserPost(UserPostDetailsModel post)
         {
             var user = (await _userRepository.FindAsync(u => u.Id == post.User_Id)).FirstOrDefault();
             if (user == null)
@@ -104,5 +105,84 @@ namespace Snera_Core.Services
 
             return "Post created successfully with multiple skills and roles!";
         }
+        public async Task<List<UserPostModel>> GetAllPostAsync(FilterModel filter)
+        {
+            // Step 1: Get all posts
+            IEnumerable<UserPost> allPosts = await _postRepository.GetAllAsync();
+
+            // Step 2: Apply filters
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                allPosts = allPosts.Where(p =>
+                    p.Title.Contains(filter.Search, StringComparison.OrdinalIgnoreCase) ||
+                    p.Description.Contains(filter.Search, StringComparison.OrdinalIgnoreCase)
+                );
+            }
+
+            if (!string.IsNullOrEmpty(filter.Type))
+            {
+                allPosts = allPosts.Where(p => p.Post_Type == filter.Type);
+            }
+
+            if (!string.IsNullOrEmpty(filter.State))
+            {
+                allPosts = allPosts.Where(p => p.Record_State == filter.State);
+            }
+
+            int totalRecords = allPosts.Count();
+
+            if (filter.IsDescending)
+                allPosts = allPosts.OrderByDescending(p => p.Created_Timestamp);
+            else
+                allPosts = allPosts.OrderBy(p => p.Created_Timestamp);
+
+            var pagedPosts = allPosts
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToList();
+
+            List<UserPostModel> postList = new List<UserPostModel>();
+
+            foreach (var post in pagedPosts)
+            {
+                var postDetails = (await _postDetailsRepository
+                    .FindAsync(d => d.UserPost_Id == post.Id))
+                    .FirstOrDefault();
+
+                List<SkillMode> skillList = new List<SkillMode>();
+                if (postDetails != null)
+                {
+                    var skills = await _skillsRepository.FindAsync(s =>
+                        s.Post_Details_Id == postDetails.Id &&
+                        s.Record_State == "Active"
+                    );
+
+                    skillList = skills.Select(s => new SkillMode
+                    {
+                        Skill_Name = s.Skill_Name,
+                        Skill_Type = s.Skill_Type
+                    }).ToList();
+                }
+
+                var postModel = new UserPostModel
+                {
+                    Post_Type = post.Post_Type,
+                    Title = post.Title,
+                    Description = post.Description,
+                    Budget = post.Budget,
+                    Post_Like = post.Post_Like,
+                    Created_Timestamp = post.Created_Timestamp,
+                    Last_Edited_By = post.Last_Edited_By,
+                    Record_State = post.Record_State,
+                    User_Id = post.User_Id,
+                    Skills = skillList
+                };
+
+                postList.Add(postModel);
+            }
+
+            return postList;
+        }
+
     }
 }
