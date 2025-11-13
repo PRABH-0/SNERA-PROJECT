@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 
 
+
 interface SignProps {
     isOpen: boolean;
     onClose: () => void;
@@ -17,8 +18,16 @@ interface SignProps {
 const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) => {
     const [activeTab, setActiveTab] = useState<"signin" | "getstarted">(defaultTab);
     const [loading, setLoading] = useState(false);
+    const FullScreenLoader = () => (
+        <div className="fixed inset-0 flex justify-center items-center bg-[rgba(0,0,0,0.3)] z-[9999]">
+            <Lottie animationData={loadingAnimation} loop className="w-60 h-60" />
+        </div>
+    );
 
     const [loginData, setLoginData] = useState({ email: "", password: "" });
+    const [loginError, setLoginError] = useState("");
+    const [passwordError, setPasswordError] = useState("")
+    const [registerError, setRegisterError] = useState("");
 
     const [profileType, setProfileType] = useState("student");
     const [experience, setExperience] = useState("0-1 years");
@@ -43,6 +52,14 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
             document.body.style.overflow = "auto";
         };
     }, [isOpen, defaultTab]);
+    useEffect(() => {
+        if (loading) {
+            document.body.style.overflow = "hidden"; // STOP SCROLLING
+        } else if (!isOpen) {
+            document.body.style.overflow = "auto"; // ALLOW AGAIN
+        }
+    }, [loading, isOpen]);
+
 
     const navigate = useNavigate();
 
@@ -59,19 +76,14 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
         const { name, value } = e.target;
         setLoginData((prev) => ({ ...prev, [name]: value }));
     };
-    const LoadingOverlay = () => (
-        <div className="fixed inset-0 flex flex-col justify-center items-center bg-[var(--bg-primary)] z-[1000] backdrop-blur-sm text-center">
-            <Lottie animationData={loadingAnimation} loop={true} className="w-40 h-40 text-" />
-            <p className="text-[var(--text-primary)] text-lg  font-semibold">Please wait...</p>
-        </div>
-    );
+
 
 
     const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         if (formData.password !== formData.confirmPassword) {
-            alert("❌ Passwords do not match!");
+            setPasswordError("Passwords do not match!");
             setLoading(false);
             return;
         }
@@ -95,20 +107,21 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
             console.log("✅ Registration success:", res.data);
             setTimeout(() => {
                 setActiveTab("signin");
-                setLoading(false);  
-            }, 800);  
+                setLoading(false);
+            }, 800);
         } catch (err: any) {
             console.error("❌ Registration failed:", err);
-            alert("❌ Registration failed. Check console for details.");
+            setRegisterError("Registration failed! Please check your details.")
         }
         finally {
-            setLoading(false); 
+            setLoading(false);
         }
     };
 
     const handleLoginSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
+        setLoginError("");
         try {
             const res = await API.post("/Users/login", loginData);
             console.log("✅ Login success:", res.data);
@@ -127,23 +140,25 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
 
             }
         } catch (err: any) {
-            console.error("❌ Login failed:", err);
-            alert("❌ Invalid email or password!");
+            setLoginError("Invalid email or password!");   
         }
         finally {
-            setLoading(false);  
+            setLoading(false);
         }
     };
-    if (loading) return <LoadingOverlay />;
     if (!isOpen) return null;
 
-    return (
+    return (<>
+    {loading && <FullScreenLoader />}
+
         <div
             id="overlay"
             onClick={handleOverlayClick}
             className="fixed inset-0 flex justify-center items-start pt-10 bg-[var(--overlay-bg)] backdrop-blur-[5px] z-50 overflow-auto"
         >
-            <div className="bg-[var(--bg-primary)] p-8 rounded-xl shadow-lg w-[70vw] h-[550px] relative overflow-auto backdrop-blur-[5px] ">
+            <div className={`bg-[var(--bg-primary)] p-8 rounded-xl shadow-lg w-[80vw] h-[550px] relative overflow-auto backdrop-blur-[5px]  ${loading ? "pointer-events-none" : ""} `}>
+                
+
                 <button
                     onClick={onClose}
                     className="cursor-pointer text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-3xl absolute top-4 right-6"
@@ -184,6 +199,7 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
                         onLoginChange={handleLoginChange}
                         onLoginSubmit={handleLoginSubmit}
                         switchToRegister={() => setActiveTab("getstarted")}
+                        error={loginError}
                     />
                 ) : (
                     <RegisterForm
@@ -195,10 +211,14 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
                         onRegisterSubmit={handleRegisterSubmit}
                         onChange={handleChange}
                         switchToSignin={() => setActiveTab("signin")}
+                        error={registerError}
+                        error2={passwordError}
+                        loading={loading}
                     />
                 )}
             </div>
         </div>
+        </>
     );
 };
 

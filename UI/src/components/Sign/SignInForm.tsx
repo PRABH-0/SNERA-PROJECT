@@ -5,9 +5,10 @@ type Props = {
   onLoginChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onLoginSubmit: (e: React.FormEvent) => Promise<void> | void;
   switchToRegister: () => void;
+  error?: string
 };
 
-const SignInForm: React.FC<Props> = ({ loginData, onLoginChange, onLoginSubmit, switchToRegister }) => {
+const SignInForm: React.FC<Props> = ({ loginData, onLoginChange, onLoginSubmit, switchToRegister, error }) => {
   return (
     <>
       <h1 className="text-[var(--text-primary)] text-3xl font-bold mb-6 text-center">
@@ -22,7 +23,7 @@ const SignInForm: React.FC<Props> = ({ loginData, onLoginChange, onLoginSubmit, 
           name="email"
           value={loginData.email}
           onChange={onLoginChange}
-          className="border w-full p-2 rounded-lg my-1 mb-4 placeholder:text-[#9999a6]"
+          className={`border w-full p-2 rounded-lg my-1 mb-4 placeholder:text-[#9999a6] ${error ? "border-red-500" : ""}`}
           placeholder="Email"
           type="email"
           required
@@ -35,11 +36,16 @@ const SignInForm: React.FC<Props> = ({ loginData, onLoginChange, onLoginSubmit, 
           name="password"
           value={loginData.password}
           onChange={onLoginChange}
-          className="border w-full p-2 mb-4 rounded-lg placeholder:text-[#9999a6]"
+          className={`border w-full p-2 mb-4 rounded-lg placeholder:text-[#9999a6] ${error ? "border-red-500" : ""} `}
           placeholder="Password"
           type="password"
           required
         />
+        {error && (
+          <p className="text-red-500 text-sm mt-3 bg-red-100 border-l-4 border-red-500 p-2 rounded">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"

@@ -1,4 +1,4 @@
-import React from "react";
+  import React from "react"; 
 
 type RegisterProps = {
   formData: {
@@ -17,6 +17,9 @@ type RegisterProps = {
   onRegisterSubmit: (e: React.FormEvent) => Promise<void> | void;
   onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
   switchToSignin: () => void;
+  error?: string
+  error2?: string
+  loading: boolean;
 };
 
 const RegisterForm: React.FC<RegisterProps> = ({
@@ -28,15 +31,19 @@ const RegisterForm: React.FC<RegisterProps> = ({
   onRegisterSubmit,
   onChange,
   switchToSignin,
+  error,
+  error2,
+  loading
 }) => {
   return (
-    <>
+     <div className={`${loading ? "pointer-events-none opacity-40" : ""}`}> 
+
       <h2 className="text-2xl font-bold text-center text-[var(--text-primary)] my-8 mt-0">
         Join SNERA Community
       </h2>
 
       <form onSubmit={onRegisterSubmit}>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+        <div className=" grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
           <div>
             <label className="block text-sm font-medium">Full Name *</label>
             <input
@@ -45,7 +52,7 @@ const RegisterForm: React.FC<RegisterProps> = ({
               value={formData.full_Name}
               onChange={onChange}
               placeholder="Enter your full name"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black outline-none"
+              className={`mt-1 w-full border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)] rounded-md px-3 py-2 focus:border-[var(--border-color)] ${error ? "border-red-500" : " "} `}
               required
             />
           </div>
@@ -58,7 +65,7 @@ const RegisterForm: React.FC<RegisterProps> = ({
               value={formData.email}
               onChange={onChange}
               placeholder="Enter your email"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black outline-none"
+              className={`mt-1 w-full border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)] rounded-md px-3 py-2 focus:border-[var(--border-color)] ${error ? "border-red-500" : " "} `}
               required
             />
           </div>
@@ -71,7 +78,7 @@ const RegisterForm: React.FC<RegisterProps> = ({
               value={formData.password}
               onChange={onChange}
               placeholder="Create a strong password"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black outline-none"
+              className={`mt-1 w-full border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)] rounded-md px-3 py-2 focus:border-[var(--border-color)]  ${error2 ? "border-red-500" : " "} ${error ? "border-red-500" : " "} `}
               required
             />
           </div>
@@ -84,7 +91,7 @@ const RegisterForm: React.FC<RegisterProps> = ({
               value={formData.confirmPassword}
               onChange={onChange}
               placeholder="Confirm your password"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black outline-none"
+              className={`mt-1 w-full border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)]  focus:border-[var(--border-color)] rounded-md px-3 py-2 ${error2 ? "border-red-500" : " "} ${error ? "border-red-500" : " "} `}
               required
             />
           </div>
@@ -122,7 +129,7 @@ const RegisterForm: React.FC<RegisterProps> = ({
               value={formData.current_Role}
               onChange={onChange}
               placeholder="e.g., Frontend Developer"
-              className="mt-1 w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-black focus:border-black outline-none"
+              className="mt-1 w-full   rounded-md px-3 py-2 border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)]  focus:border-[var(--border-color)] "
             />
           </div>
 
@@ -153,12 +160,12 @@ const RegisterForm: React.FC<RegisterProps> = ({
             value={formData.userSkills}
             onChange={onChange}
             placeholder="e.g., React, Node.js, SQL"
-            className="w-full border border-gray-300 rounded-md p-3 focus:ring-black focus:border-black outline-none"
+            className="w-full  rounded-md p-3 border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)]  focus:border-[var(--border-color)] "
           />
         </div>
 
         {/* Bio */}
-        <div>
+        <div >
           <label className="block text-sm font-medium mb-2">Bio/Introduction</label>
           <textarea
             name="bio"
@@ -166,9 +173,19 @@ const RegisterForm: React.FC<RegisterProps> = ({
             onChange={onChange}
             rows={4}
             placeholder="Tell us about yourself..."
-            className="w-full border border-gray-300 rounded-md p-3 focus:ring-black focus:border-black outline-none"
+            className="w-full rounded-md p-3 border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)]  focus:border-[var(--border-color)] "
           ></textarea>
         </div>
+        {error && (
+          <p className="text-red-500 text-sm mt-3 bg-red-100 border-l-4 border-red-500 p-2 rounded">
+            {error}
+          </p>
+        )}
+        {error2 && (
+          <p className="text-red-500 text-sm mt-3 bg-red-100 border-l-4 border-red-500 p-2 rounded">
+            {error2}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -176,8 +193,8 @@ const RegisterForm: React.FC<RegisterProps> = ({
         >
           Create Account & Join Community
         </button>
-
-        <div className="border-t border-[var(--border-color)] mt-10 text-center flex items-center justify-center">
+         
+        <div className=" border-t border-[var(--border-color)] mt-10 text-center flex items-center justify-center">
           <p className="text-center text-sm mr-1 mt-10 text-[var(--text-secondary)]">
             Already have an account?{" "}
             <button
@@ -186,10 +203,11 @@ const RegisterForm: React.FC<RegisterProps> = ({
             >
               Sign in here
             </button>
+
           </p>
         </div>
       </form>
-    </>
+    </div>
   );
 };
 
