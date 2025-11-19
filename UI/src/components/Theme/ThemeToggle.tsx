@@ -13,7 +13,7 @@ export default function ThemeToggle() {
       {theme === 'dark' ? (
         <Sun size={26} className="text-[#f57c00] transition-transform duration-300 hover:scale-110 hover:bg-[var(--bg-tertairy)] " />
       ) : (
-        <Moon size={26} className="text-[#4dabf7] fill-[#4dabf7] stroke-none transition-transform duration-300 hover:scale-110 hover:bg-[var(--bg-tertairy)] " />
+        <Moon size={21} className="  fill-[#4dabf7] stroke-none transition-transform duration-300 hover:scale-110 hover:bg-[var(--bg-tertairy)] " />
       )}
     </button>
   )

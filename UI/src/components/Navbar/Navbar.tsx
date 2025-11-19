@@ -1,16 +1,30 @@
 import React, { useState, useEffect } from 'react'
 import Searchbar from '../ResponsiveSearch/searchbar'
 import HamBurger from '../Hamburger/HamBurger'
+import { useNavigate } from "react-router-dom";
+
 
 import logodark from "../../assets/snera-dark-remove-bg.png"
 import logolight from "../../assets/Snera-canva-2__1_-crop-removebg-light.png"
 import ThemeToggle from '../Theme/ThemeToggle';
 
+type UserType = {
+    userName?: string;
+    email?: string;
+    userId?: string;
+};
 
 const Navbar: React.FC = () => {
     const [theme, setTheme] = useState<string | null>(null);
+    const [user, setUser] = useState<UserType | null>(null);
+    const [loadingUser, setLoadingUser] = useState(true);
+    const navigate = useNavigate();
 
-    useEffect(() => { 
+    
+
+
+
+    useEffect(() => {
         const savedTheme = localStorage.getItem("theme");
 
         if (savedTheme === "dark" || document.documentElement.classList.contains("dark")) {
@@ -20,7 +34,21 @@ const Navbar: React.FC = () => {
             setTheme("light");
             document.documentElement.classList.remove("dark");
         }
- 
+        // load user safely
+        try {
+            const raw = localStorage.getItem("user");
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                setUser(parsed);
+            } else {
+                setUser(null);
+            }
+        } catch (err) {
+            console.warn("Failed to parse saved user:", err);
+            setUser(null);
+        }
+           setLoadingUser(false); 
+
         const observer = new MutationObserver(() => {
             setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
         });
@@ -32,6 +60,15 @@ const Navbar: React.FC = () => {
 
         return () => observer.disconnect();
     }, []);
+
+    const getInitial = () => {
+        if (loadingUser) return ""; 
+        const name = user?.userName?.trim();
+        if (name && name.length) return name.charAt(0).toUpperCase();
+        const email = user?.email?.trim();
+        if (email && email.length) return email.charAt(0).toUpperCase();
+        return "";
+    };
 
 
 
@@ -46,18 +83,17 @@ const Navbar: React.FC = () => {
                     <div className="  flex justify-end items-center ">
                         <ThemeToggle />
 
-                        <div className="dropdown ">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" fill="#ffffff" stroke="none" className="fill-[var(--icon-color)] hover:fill-[var(--icon-hover)] inline-block size-5.5 my-1.5 w-6 mx-2  mr-2 cursor-pointer"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.89 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" /></svg>
+                        <div className="dropdown curser-pointer "
+                         onClick={() => navigate("/CreatePost")}>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" fill="#ffffff" stroke="none" className="fill-[var(--icon-color)] hover:fill-[var(--icon-hover)] inline-block size-5.5 my-1.5 w-6 mx-2  mr-2 cursor-pointer"><path
+                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
                         </div>
                         <div className="dropdown">
                             <div className="relative group w-10">
                                 {/* Profile Avatar */}
                                 <div className="btn btn-ghost btn-circle avatar cursor-pointer">
-                                    <div className="w-10 rounded-full overflow-hidden">
-                                        <img
-                                            src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                                            alt="Profile"
-                                        />
+                                    <div className="w-10 h-10 rounded-full bg-[var(--accent-color)] text-white flex items-center justify-center font-semibold text-lg cursor-pointer">
+                                        {getInitial()}
                                     </div>
                                 </div>
 
@@ -71,14 +107,13 @@ const Navbar: React.FC = () => {
                                     <div >
                                         <div className="flex gap-5 h-16  p-2  m-3">
 
-                                            <img className='w-12 rounded-full'
-                                                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp"
-                                                alt="Profile"
-                                            />
+                                            <div className="w-10 h-10 rounded-full bg-[var(--accent-color)] text-white flex items-center justify-center font-semibold text-lg">
+                                                {getInitial()}
+                                            </div>
 
                                             <div className="flex flex-col">
-                                                <div className="">Alex Smith</div>
-                                                <div className="text-[12px] text-[#999999]">alex.smith@example.com</div>
+                                                <div className="">{!loadingUser && (user?.userName || user?.email || "")} </div>
+                                                <div className="text-[12px] text-[#999999]"> {!loadingUser && (user?.email || "")}</div>
                                             </div>
                                         </div>
                                         <div className="h-px  bg-[#777777] w-full" ></div>
@@ -120,6 +155,19 @@ const Navbar: React.FC = () => {
                                                 <p>Settings</p>
                                             </div>
                                             <div className=" btn box-shadow-none bg-black hover:bg-[#404040] border-none outline-none text-white p-3 m-3">View Full Profile</div>
+                                            <button
+                                                className="w-full text-left px-2 py-2 rounded hover:bg-[var(--bg-tertiary)] text-red-500"
+                                                onClick={() => {
+                                                    localStorage.removeItem("token");
+                                                    localStorage.removeItem("user");
+                                                    
+                                                    setUser(null);
+                                                    setLoadingUser(true);
+                                                    window.location.href = "/"; 
+                                                }}
+                                            >
+                                                Logout
+                                            </button>
                                         </div>
                                     </div>
 
