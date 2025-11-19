@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import API from "../../api/api";
 import SignInForm from "../Sign/SignInForm";
 import RegisterForm from "../Sign/RegisterForm";
 import Lottie from "lottie-react";
+import type { LottieRefCurrentProps } from "lottie-react";
+
 import loadingAnimation from "../../assets/animations/loading.json";
 import { useNavigate } from "react-router-dom";
 
@@ -18,11 +20,27 @@ interface SignProps {
 const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) => {
     const [activeTab, setActiveTab] = useState<"signin" | "getstarted">(defaultTab);
     const [loading, setLoading] = useState(false);
-    const FullScreenLoader = () => (
-        <div className="fixed inset-0 flex justify-center items-center bg-[rgba(0,0,0,0.3)] z-[9999]">
-            <Lottie animationData={loadingAnimation} loop className="w-60 h-60" />
-        </div>
-    );
+    const FullScreenLoader = () => {
+        const lottieRef = useRef<LottieRefCurrentProps>(null);
+
+        useEffect(() => {
+            if (lottieRef.current) {
+                lottieRef.current.setSpeed(2);
+            }
+        }, []);
+
+        return (
+            <div className="fixed inset-0 flex justify-center items-center bg-[rgba(0,0,0,0.3)] z-[9999]">
+                <Lottie
+                    animationData={loadingAnimation}
+                    loop
+                    className="w-60 h-60"
+                    lottieRef={lottieRef}
+                />
+            </div>
+        );
+    };
+
 
     const [loginData, setLoginData] = useState({ email: "", password: "" });
     const [loginError, setLoginError] = useState("");
@@ -54,9 +72,9 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
     }, [isOpen, defaultTab]);
     useEffect(() => {
         if (loading) {
-            document.body.style.overflow = "hidden"; // STOP SCROLLING
+            document.body.style.overflow = "hidden";
         } else if (!isOpen) {
-            document.body.style.overflow = "auto"; // ALLOW AGAIN
+            document.body.style.overflow = "auto";
         }
     }, [loading, isOpen]);
 
@@ -132,15 +150,25 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
                 res.data.jwt ||
                 res.data.jwtToken ||
                 res.data.data?.token;
-
+                 if (!token) {
+      console.error("❌ No token found in login API response");
+      return;
+    }
             if (token) {
                 localStorage.setItem("token", token);
+                const userObj = {
+                    userName: res.data.userName  || "",
+                    email: res.data.userEmail ||   loginData.email,
+                    userId: res.data.userId ,
+                    accessToken: token
+                };
+                 localStorage.setItem("user", JSON.stringify(userObj));
                 API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
                 navigate("/Home");
 
             }
         } catch (err: any) {
-            setLoginError("Invalid email or password!");   
+            setLoginError("Invalid email or password!");
         }
         finally {
             setLoading(false);
@@ -149,7 +177,7 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
     if (!isOpen) return null;
 
     return (<>
-    {loading && <FullScreenLoader />}
+        {loading && <FullScreenLoader />}
 
         <div
             id="overlay"
@@ -157,7 +185,7 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
             className="fixed inset-0 flex justify-center items-start pt-10 bg-[var(--overlay-bg)] backdrop-blur-[5px] z-50 overflow-auto"
         >
             <div className={`bg-[var(--bg-primary)] p-8 rounded-xl shadow-lg w-[80vw] h-[550px] relative overflow-auto backdrop-blur-[5px]  ${loading ? "pointer-events-none" : ""} `}>
-                
+
 
                 <button
                     onClick={onClose}
@@ -218,7 +246,7 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
                 )}
             </div>
         </div>
-        </>
+    </>
     );
 };
 

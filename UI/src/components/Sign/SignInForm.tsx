@@ -23,7 +23,7 @@ const SignInForm: React.FC<Props> = ({ loginData, onLoginChange, onLoginSubmit, 
           name="email"
           value={loginData.email}
           onChange={onLoginChange}
-          className={`border w-full p-2 rounded-lg my-1 mb-4 placeholder:text-[#9999a6] ${error ? "border-red-500" : ""}`}
+          className={`border w-full p-2 rounded-lg my-1 mb-4 border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)]  focus:border-[var(--border-color)] ${error ? "border-red-500" : ""}`}
           placeholder="Email"
           type="email"
           required
@@ -36,7 +36,7 @@ const SignInForm: React.FC<Props> = ({ loginData, onLoginChange, onLoginSubmit, 
           name="password"
           value={loginData.password}
           onChange={onLoginChange}
-          className={`border w-full p-2 mb-4 rounded-lg placeholder:text-[#9999a6] ${error ? "border-red-500" : ""} `}
+          className={`border w-full p-2 mb-4 rounded-lg border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)]  focus:border-[var(--border-color)] ${error ? "border-red-500" : ""} `}
           placeholder="Password"
           type="password"
           required

@@ -12,6 +12,7 @@ import Projects from './components/Projects/Projects';
 import Hero from './components/Hero/Hero'; 
 import Teams from './components/Teams/Teams';
 import Feedback from './components/Feedback/Feedback';
+import CreatePost from './components/CreatePost/CreatePost';
 
 const Layout: React.FC = () => {
   return (
@@ -27,7 +28,7 @@ const Layout: React.FC = () => {
 const router = createBrowserRouter([
   { path: "/", element: <Hero /> }, 
   {
-    element: <Layout />,  // Navbar common for all
+    element: <Layout />,  
     children: [
       { path: "/Home", element: <Home /> },
       { path: "/Match", element: <Match /> },
@@ -37,6 +38,8 @@ const router = createBrowserRouter([
       { path: "/Teams", element: <Teams /> },
       { path: "/Feedback", element: <Feedback /> },
       { path: "/About", element: <About /> },
+      { path: "/CreatePost", element: <CreatePost /> },
+
     ],
   },
 ]);

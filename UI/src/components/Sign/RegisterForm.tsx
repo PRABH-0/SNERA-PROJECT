@@ -78,7 +78,7 @@ const RegisterForm: React.FC<RegisterProps> = ({
               value={formData.password}
               onChange={onChange}
               placeholder="Create a strong password"
-              className={`mt-1 w-full border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)] rounded-md px-3 py-2 focus:border-[var(--border-color)]  ${error2 ? "border-red-500" : " "} ${error ? "border-red-500" : " "} `}
+              className={`mt-1 w-full rounded-md px-3 py-2 border border-[var(--border-line)] placeholder:text-[var(--text-tertiary)]  bg-[var(--input-bg)]  focus:border-[var(--border-color)]  ${error2 ? "border-red-500" : " "} ${error ? "border-red-500" : " "} `}
               required
             />
           </div>
