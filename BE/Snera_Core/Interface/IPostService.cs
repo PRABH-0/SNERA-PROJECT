@@ -7,5 +7,6 @@ namespace Snera_Core.Interface
     {
         Task<string> CreateUserPost(UserPostDetailsModel post);
         Task<List<UserPostModel>> GetAllPostAsync(FilterModel filter);
+        Task<string> UpdatePostLikeAsync(PostLikeModel postLike);
     }
 }

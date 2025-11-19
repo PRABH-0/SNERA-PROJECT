@@ -48,5 +48,20 @@ namespace Snera_Core.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+        [HttpPost("Like")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePostLike(PostLikeModel dto)
+        {
+            try
+            {
+                var response = await _postService.UpdatePostLikeAsync(dto);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        
     }
 }

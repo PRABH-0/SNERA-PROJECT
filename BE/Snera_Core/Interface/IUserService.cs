@@ -11,6 +11,6 @@ namespace Snera_Core.Services
 
         Task<LoginResponseModel> LoginUserAsync(UserLoginModel dto);
 
-        Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<IEnumerable<UserModel>> GetAllUsersAsync();
     }
 }

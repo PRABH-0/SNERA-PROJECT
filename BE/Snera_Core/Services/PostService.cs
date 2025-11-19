@@ -1,4 +1,5 @@
-﻿using Snera_Core.Entities;
+﻿using Snera_Core.Common;
+using Snera_Core.Entities;
 using Snera_Core.Entities.PostEntities;
 using Snera_Core.Interface;
 using Snera_Core.Interfaces;
@@ -13,6 +14,7 @@ namespace Snera_Core.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IRepository<User> _userRepository;
         private readonly IRepository<UserPost> _postRepository;
+        private readonly IRepository<PostLikes> _postLikesRepository;
         private readonly IRepository<UserPost_Details> _postDetailsRepository;
         private readonly IRepository<UserPost_Skills> _skillsRepository;
         private readonly IRepository<UserPost_Roles> _rolesRepository;
@@ -20,6 +22,7 @@ namespace Snera_Core.Services
         public PostService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+            _postLikesRepository = _unitOfWork.Repository<PostLikes>();
             _userRepository = _unitOfWork.Repository<User>();
             _postRepository = _unitOfWork.Repository<UserPost>();
             _postDetailsRepository = _unitOfWork.Repository<UserPost_Details>();
@@ -31,7 +34,7 @@ namespace Snera_Core.Services
         {
             var user = (await _userRepository.FindAsync(u => u.Id == post.User_Id)).FirstOrDefault();
             if (user == null)
-                throw new Exception("User not found.");
+                throw new Exception(CommonErrors.UserNotFound);
 
             var postId = Guid.NewGuid();
 
@@ -64,40 +67,59 @@ namespace Snera_Core.Services
                 Project_Status = post.Project_Status
             };
 
-            await _postRepository.AddAsync(newPost);
-            await _postDetailsRepository.AddAsync(postDetails);
+            try
+            {
+                await _postRepository.AddAsync(newPost);
+                await _postDetailsRepository.AddAsync(postDetails);
+            }
+            catch
+            {
+                throw new Exception(CommonErrors.PostCreationFailed);
+            }
 
             if (post.Skills != null && post.Skills.Any())
             {
-                foreach (var skill in post.Skills)
+                try
                 {
-                    var newSkill = new UserPost_Skills
+                    foreach (var skill in post.Skills)
                     {
-                        Id = Guid.NewGuid(),
-                        Post_Details_Id = postDetails.Id,
-                        Skill_Name = skill.Skill_Name,
-                        Skill_Type = skill.Skill_Type,
-                        Created_At = DateTime.UtcNow,
-                        Record_State = "Active"
-                    };
-                    await _skillsRepository.AddAsync(newSkill);
+                        await _skillsRepository.AddAsync(new UserPost_Skills
+                        {
+                            Id = Guid.NewGuid(),
+                            Post_Details_Id = postDetails.Id,
+                            Skill_Name = skill.Skill_Name,
+                            Skill_Type = skill.Skill_Type,
+                            Created_At = DateTime.UtcNow,
+                            Record_State = "Active"
+                        });
+                    }
+                }
+                catch
+                {
+                    throw new Exception(CommonErrors.SkillCreationFailed);
                 }
             }
 
             if (post.Roles != null && post.Roles.Any())
             {
-                foreach (var role in post.Roles)
+                try
                 {
-                    var newRole = new UserPost_Roles
+                    foreach (var role in post.Roles)
                     {
-                        Id = Guid.NewGuid(),
-                        Post_Details_Id = postDetails.Id,
-                        Role_Name = role.Role_Name,
-                        Role_Type = role.Role_Type,
-                        Created_At = DateTime.UtcNow,
-                        Record_State = "Active"
-                    };
-                    await _rolesRepository.AddAsync(newRole);
+                        await _rolesRepository.AddAsync(new UserPost_Roles
+                        {
+                            Id = Guid.NewGuid(),
+                            Post_Details_Id = postDetails.Id,
+                            Role_Name = role.Role_Name,
+                            Role_Type = role.Role_Type,
+                            Created_At = DateTime.UtcNow,
+                            Record_State = "Active"
+                        });
+                    }
+                }
+                catch
+                {
+                    throw new Exception(CommonErrors.RoleCreationFailed);
                 }
             }
 
@@ -105,12 +127,11 @@ namespace Snera_Core.Services
 
             return "Post created successfully with multiple skills and roles!";
         }
+
         public async Task<List<UserPostModel>> GetAllPostAsync(FilterModel filter)
         {
-            // Step 1: Get all posts
             IEnumerable<UserPost> allPosts = await _postRepository.GetAllAsync();
 
-            // Step 2: Apply filters
             if (!string.IsNullOrEmpty(filter.Search))
             {
                 allPosts = allPosts.Where(p =>
@@ -128,8 +149,6 @@ namespace Snera_Core.Services
             {
                 allPosts = allPosts.Where(p => p.Record_State == filter.State);
             }
-
-            int totalRecords = allPosts.Count();
 
             if (filter.IsDescending)
                 allPosts = allPosts.OrderByDescending(p => p.Created_Timestamp);
@@ -149,23 +168,38 @@ namespace Snera_Core.Services
                     .FindAsync(d => d.UserPost_Id == post.Id))
                     .FirstOrDefault();
 
-                List<SkillMode> skillList = new List<SkillMode>();
-                if (postDetails != null)
-                {
-                    var skills = await _skillsRepository.FindAsync(s =>
-                        s.Post_Details_Id == postDetails.Id &&
-                        s.Record_State == "Active"
-                    );
+                if (postDetails == null)
+                    throw new Exception(CommonErrors.PostDetailsNotFound);
 
-                    skillList = skills.Select(s => new SkillMode
-                    {
-                        Skill_Name = s.Skill_Name,
-                        Skill_Type = s.Skill_Type
-                    }).ToList();
+                List<SkillMode> skillList = new List<SkillMode>();
+
+                var skills = await _skillsRepository.FindAsync(s =>
+                    s.Post_Details_Id == postDetails.Id &&
+                    s.Record_State == "Active"
+                );
+
+                skillList = skills.Select(s => new SkillMode
+                {
+                    Skill_Name = s.Skill_Name,
+                    Skill_Type = s.Skill_Type
+                }).ToList();
+
+                var user = (await _unitOfWork.Users.FindAsync(x => x.Id == post.User_Id)).FirstOrDefault();
+
+                string avatarName = "";
+
+                if (user != null && !string.IsNullOrWhiteSpace(user.FullName))
+                {
+                    var parts = user.FullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    avatarName = parts.Length == 1
+                        ? parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper()
+                        : $"{parts.First()[0]}{parts.Last()[0]}".ToUpper();
                 }
 
-                var postModel = new UserPostModel
+                postList.Add(new UserPostModel
                 {
+                    Avtar_Name = avatarName,
+                    Author_Name = user.FullName,
                     Post_Type = post.Post_Type,
                     Title = post.Title,
                     Description = post.Description,
@@ -175,14 +209,45 @@ namespace Snera_Core.Services
                     Last_Edited_By = post.Last_Edited_By,
                     Record_State = post.Record_State,
                     User_Id = post.User_Id,
+                    Post_Id = post.Id,
                     Skills = skillList
-                };
-
-                postList.Add(postModel);
+                });
             }
 
             return postList;
         }
+
+        public async Task<string> UpdatePostLikeAsync(PostLikeModel postLike)
+        {
+            var existingLike = (await _postLikesRepository
+                                .FindAsync(x => x.User_Id == postLike.User_Id
+                                             && x.Post_Id == postLike.Post_Id))
+                                .FirstOrDefault();
+
+            string message;
+
+            if (existingLike != null)
+            {
+                _postLikesRepository.Delete(existingLike);
+                message = "Post Disliked";
+            }
+            else
+            {
+                var newLike = new PostLikes
+                {
+                    User_Id = postLike.User_Id,
+                    Post_Id = postLike.Post_Id,
+                };
+
+                await _postLikesRepository.AddAsync(newLike);
+                message = "Post Liked";
+            }
+
+            await _unitOfWork.SaveAllAsync();
+
+            return message;
+        }
+
 
     }
 }

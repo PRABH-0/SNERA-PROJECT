@@ -16,6 +16,7 @@ namespace Snera_Core.Data
         public DbSet<UserPost_Details> UserPost_Details { get; set; }
         public DbSet<UserPost_Roles> UserPost_Roles { get; set; }
         public DbSet<UserPost_Skills> UserPost_Skills { get; set; }
+        public DbSet<PostLikes> PostLikes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
