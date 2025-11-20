@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import API from "../../api/api";
+import { useNavigate } from "react-router-dom";
 
 const CreatePost: React.FC = () => {
   const [form, setForm] = useState({
@@ -18,7 +19,7 @@ const CreatePost: React.FC = () => {
   const [skillNeedInput, setSkillNeedInput] = useState("");
 
   const [user, setUser] = useState<any>(null);
-
+ const navigate = useNavigate();
   // Load logged in user
   useEffect(() => {
     try {
@@ -79,30 +80,13 @@ const CreatePost: React.FC = () => {
     };
 
     console.log("FINAL PAYLOAD:", payload);
-    try {
-       
-   const token = JSON.parse(localStorage.getItem("user") || "{}")?.accessToken;
-
-
-       
-
-      if (!token) {
-        alert("Token missing. Please login again.");
-        return;
-      }
+    try { 
 
       const res = await API.post(
-        "/Post", 
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      alert("Post Created Successfully!");
+        "/Post",
+        payload);
+ 
+      navigate("/Home");
       console.log(res.data);
     } catch (err: any) {
       console.error("Create post error:", err);

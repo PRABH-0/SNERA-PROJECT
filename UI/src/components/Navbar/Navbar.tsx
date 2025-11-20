@@ -20,7 +20,7 @@ const Navbar: React.FC = () => {
     const [loadingUser, setLoadingUser] = useState(true);
     const navigate = useNavigate();
 
-    
+
 
 
 
@@ -47,7 +47,7 @@ const Navbar: React.FC = () => {
             console.warn("Failed to parse saved user:", err);
             setUser(null);
         }
-           setLoadingUser(false); 
+        setLoadingUser(false);
 
         const observer = new MutationObserver(() => {
             setTheme(document.documentElement.classList.contains("dark") ? "dark" : "light");
@@ -62,7 +62,7 @@ const Navbar: React.FC = () => {
     }, []);
 
     const getInitial = () => {
-        if (loadingUser) return ""; 
+        if (loadingUser) return "";
         const name = user?.userName?.trim();
         if (name && name.length) return name.charAt(0).toUpperCase();
         const email = user?.email?.trim();
@@ -84,15 +84,15 @@ const Navbar: React.FC = () => {
                         <ThemeToggle />
 
                         <div className="dropdown curser-pointer "
-                         onClick={() => navigate("/CreatePost")}>
+                            onClick={() => navigate("/CreatePost")}>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" strokeWidth="2" fill="#ffffff" stroke="none" className="fill-[var(--icon-color)] hover:fill-[var(--icon-hover)] inline-block size-5.5 my-1.5 w-6 mx-2  mr-2 cursor-pointer"><path
-                    d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
+                                d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" /></svg>
                         </div>
                         <div className="dropdown">
                             <div className="relative group w-10">
                                 {/* Profile Avatar */}
                                 <div className="btn btn-ghost btn-circle avatar cursor-pointer">
-                                    <div className="w-10 h-10 rounded-full bg-[var(--accent-color)] text-white flex items-center justify-center font-semibold text-lg cursor-pointer">
+                                    <div className="w-9 h-9 rounded-full bg-[var(--accent-color)] text-[var(--text-forth)] flex items-center justify-center font-semibold text-lg cursor-pointer">
                                         {getInitial()}
                                     </div>
                                 </div>
@@ -100,57 +100,55 @@ const Navbar: React.FC = () => {
                                 {/* Hover Box */}
 
                                 <div
-                                    className="absolute right-2 top-12 outline-[.5px] outline-[#777777]  w-60 bg-[#2c2c2c] text-white rounded    opacity-0 invisible 
+                                    className="absolute right-2 top-12 border-[.5px] border-[var(--border-color)] w-60 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded    opacity-0 invisible 
                                 group-hover:opacity-100 group-hover:visible
                                  transition-all duration-200 z-10"
                                 >
                                     <div >
-                                        <div className="flex gap-5 h-16  p-2  m-3">
+                                        <div className="flex gap-5 h-16  p-2  m-3 border-b border-[var(--border-color)]">
 
-                                            <div className="w-10 h-10 rounded-full bg-[var(--accent-color)] text-white flex items-center justify-center font-semibold text-lg">
+                                            <div className="w-10 h-10 rounded-full bg-[var(--accent-color)] text-[var(--text-forth)] flex items-center justify-center font-semibold text-lg">
                                                 {getInitial()}
                                             </div>
 
                                             <div className="flex flex-col">
-                                                <div className="">{!loadingUser && (user?.userName || user?.email || "")} </div>
-                                                <div className="text-[12px] text-[#999999]"> {!loadingUser && (user?.email || "")}</div>
+                                                <div className=" font-semibold">{!loadingUser && (user?.userName || user?.email || "")} </div>
+                                                <div className="text-[12px] text-[var(--text-secondary)]"> {!loadingUser && (user?.email || "")}</div>
                                             </div>
-                                        </div>
-                                        <div className="h-px  bg-[#777777] w-full" ></div>
+                                        </div> 
 
-                                        <div className="flex flex-col gap-3 m-3 ">
+                                        <div className="flex flex-col gap-3 m-3   border-b border-[var(--border-color)]">
                                             <div className="flex justify-between">
-                                                <div className=" text-[#999999] text-sm">Projects</div>
-                                                <div className=" text-[12px] font-semibold">12</div>
+                                                <div className=" text-[var(--text-secondary)] text-sm">Projects</div>
+                                                <div className=" text-[14px] text-[var(--text-primary)]  font-bold">12</div>
                                             </div>
                                             <div className="flex justify-between">
-                                                <div className=" text-[#999999] text-sm">Connections</div>
-                                                <div className=" text-[12px] font-semibold">24</div>
+                                                <div className=" text-[var(--text-secondary)]  text-sm">Connections</div>
+                                                <div className=" text-[14px] text-[var(--text-primary)]  font-bold">24</div>
                                             </div>
-                                            <div className="flex justify-between text-sm">
-                                                <div className=" text-[#999999]">Teams</div>
-                                                <div className=" text-[12px] font-semibold">8</div>
+                                            <div className="flex justify-between ">
+                                                <div className=" text-[var(--text-secondary)] text-sm ">Teams</div>
+                                                <div className=" text-[14px] text-[var(--text-primary)]  font-bold">8</div>
                                             </div>
 
                                         </div>
-
-                                        <div className="h-1px  bg-[#777777] w-full" ></div>
+ 
                                         <div className="flex flex-col  ">
-                                            <div className="flex gap-3 items-center h-10 hover:bg-[#3a3a3a] transition-[.2s] p-3 mt-1.5">
-                                                <svg className="size-4" viewBox="0 0 24 24" fill='#a0a0a0'>
+                                            <div className="flex gap-3 items-center h-10 hover:bg-[var(--bg-secondary)] transition-[.2s] p-3 mt-1.5 text-[var(--text-primary)]">
+                                                <svg className="size-4 fill-[var(--text-secondary)]" viewBox="0 0 24 24"  >
                                                     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                                                 </svg>
                                                 <p>My Profile</p>
                                             </div>
 
-                                            <div className="flex gap-3 items-center h-10 hover:bg-[#3a3a3a] transition-[.2s] p-3">
-                                                <svg className="size-4" viewBox="0 0 24 24" fill='#a0a0a0'>
+                                            <div className="flex gap-3 items-center h-10 hover:bg-[var(--bg-secondary)] transition-[.2s] p-3 text-[var(--text-primary)]">
+                                                <svg className="size-4 fill-[var(--text-secondary)]" viewBox="0 0 24 24" >
                                                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                                                 </svg>
                                                 <p>Create New</p>
                                             </div>
-                                            <div className="flex gap-3 items-center h-10 hover:bg-[#3a3a3a] transition-[.2s] p-3">
-                                                <svg className="size-4" viewBox="0 0 24 24" fill='#a0a0a0'> <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
+                                            <div className="flex gap-3 items-center h-10 hover:bg-[var(--bg-secondary)] transition-[.2s] p-3 text-[var(--text-primary)]">
+                                                <svg className="size-4 fill-[var(--text-secondary)]" viewBox="0 0 24 24" > <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
                                                 </svg>
                                                 <p>Settings</p>
                                             </div>
@@ -160,10 +158,10 @@ const Navbar: React.FC = () => {
                                                 onClick={() => {
                                                     localStorage.removeItem("token");
                                                     localStorage.removeItem("user");
-                                                    
+
                                                     setUser(null);
                                                     setLoadingUser(true);
-                                                    window.location.href = "/"; 
+                                                    window.location.href = "/";
                                                 }}
                                             >
                                                 Logout

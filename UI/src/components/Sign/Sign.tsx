@@ -4,6 +4,8 @@ import SignInForm from "../Sign/SignInForm";
 import RegisterForm from "../Sign/RegisterForm";
 import Lottie from "lottie-react";
 import type { LottieRefCurrentProps } from "lottie-react";
+import FullScreenLoader from "../Loader/FullScreenLoader";
+
 
 import loadingAnimation from "../../assets/animations/loading.json";
 import { useNavigate } from "react-router-dom";
@@ -20,28 +22,6 @@ interface SignProps {
 const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) => {
     const [activeTab, setActiveTab] = useState<"signin" | "getstarted">(defaultTab);
     const [loading, setLoading] = useState(false);
-    const FullScreenLoader = () => {
-        const lottieRef = useRef<LottieRefCurrentProps>(null);
-
-        useEffect(() => {
-            if (lottieRef.current) {
-                lottieRef.current.setSpeed(2);
-            }
-        }, []);
-
-        return (
-            <div className="fixed inset-0 flex justify-center items-center bg-[rgba(0,0,0,0.3)] z-[9999]">
-                <Lottie
-                    animationData={loadingAnimation}
-                    loop
-                    className="w-60 h-60"
-                    lottieRef={lottieRef}
-                />
-            </div>
-        );
-    };
-
-
     const [loginData, setLoginData] = useState({ email: "", password: "" });
     const [loginError, setLoginError] = useState("");
     const [passwordError, setPasswordError] = useState("")
