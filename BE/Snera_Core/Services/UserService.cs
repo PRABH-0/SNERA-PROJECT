@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace Snera_Core.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PasswordHasher<string> _passwordHasher;
@@ -26,7 +26,7 @@ namespace Snera_Core.Services
                 throw new Exception(CommonErrors.InvalidEmailFormat);
 
             var userRepo = _unitOfWork.Repository<User>();
-            var existingUser = (await userRepo.FindAsync(u => u.Email == dto.Email)).FirstOrDefault();
+            var existingUser = await userRepo.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
             if (existingUser != null)
                 throw new Exception(CommonErrors.EmailAlreadyExists);
@@ -50,18 +50,16 @@ namespace Snera_Core.Services
 
             await userRepo.AddAsync(newUser);
 
-            if (dto.UserSkills != null)
+            if (dto.UserSkills != null && dto.UserSkills.Any())
             {
                 var skillRepo = _unitOfWork.Repository<UserSkill>();
-
-                foreach (var skill in dto.UserSkills)
+                var userSkills = dto.UserSkills.Select(skill => new UserSkill
                 {
-                    await skillRepo.AddAsync(new UserSkill
-                    {
-                        Skill_Name = skill,
-                        UserId = newUser.Id
-                    });
-                }
+                    Skill_Name = skill,
+                    UserId = newUser.Id
+                });
+
+                await skillRepo.AddRangeAsync(userSkills);
             }
 
             await _unitOfWork.SaveAllAsync();
@@ -71,7 +69,7 @@ namespace Snera_Core.Services
         public async Task<LoginResponseModel> LoginUserAsync(UserLoginModel dto)
         {
             var userRepo = _unitOfWork.Repository<User>();
-            var user = (await userRepo.FindAsync(u => u.Email == dto.Email)).FirstOrDefault();
+            var user = await userRepo.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
             if (user == null)
                 throw new Exception(CommonErrors.UserNotFound);
