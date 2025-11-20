@@ -1,21 +1,19 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Snera_Core.Common;
 using Snera_Core.Entities;
 using Snera_Core.Models.UserModels;
 using Snera_Core.UnitOfWork;
-using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace Snera_Core.Services
 {
-    public class UserService
+    public class UserService : IUserService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly PasswordHasher<string> _passwordHasher;
         private readonly JwtService _tokenService;
 
-        public UserService(IUnitOfWork unitOfWork,JwtService tokenService)
+        public UserService(IUnitOfWork unitOfWork, JwtService tokenService)
         {
             _unitOfWork = unitOfWork;
             _passwordHasher = new PasswordHasher<string>();
@@ -25,17 +23,16 @@ namespace Snera_Core.Services
         public async Task<User> RegisterUserAsync(UserRegisterModel dto)
         {
             if (!Regex.IsMatch(dto.Email ?? "", @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-                throw new Exception("Invalid email format.");
+                throw new Exception(CommonErrors.InvalidEmailFormat);
 
             var userRepo = _unitOfWork.Repository<User>();
+            var existingUser = await userRepo.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
-            var existingUserList = await userRepo.FindAsync(u => u.Email == dto.Email);
-            var existingUser = existingUserList.FirstOrDefault();
             if (existingUser != null)
-                throw new Exception("Email already exists.");
+                throw new Exception(CommonErrors.EmailAlreadyExists);
 
             if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
-                throw new Exception("Password must be at least 6 characters long.");
+                throw new Exception(CommonErrors.WeakPassword);
 
             var hashedPassword = _passwordHasher.HashPassword(dto.Email, dto.Password);
 
@@ -53,19 +50,16 @@ namespace Snera_Core.Services
 
             await userRepo.AddAsync(newUser);
 
-            // Add user skills
-            if (dto.UserSkills != null)
+            if (dto.UserSkills != null && dto.UserSkills.Any())
             {
-                var userSkillRepo = _unitOfWork.Repository<UserSkill>();
-
-                foreach (var skill in dto.UserSkills)
+                var skillRepo = _unitOfWork.Repository<UserSkill>();
+                var userSkills = dto.UserSkills.Select(skill => new UserSkill
                 {
-                    await userSkillRepo.AddAsync(new UserSkill
-                    {
-                        Skill_Name = skill,
-                        UserId = newUser.Id
-                    });
-                }
+                    Skill_Name = skill,
+                    UserId = newUser.Id
+                });
+
+                await skillRepo.AddRangeAsync(userSkills);
             }
 
             await _unitOfWork.SaveAllAsync();
@@ -75,31 +69,39 @@ namespace Snera_Core.Services
         public async Task<LoginResponseModel> LoginUserAsync(UserLoginModel dto)
         {
             var userRepo = _unitOfWork.Repository<User>();
-            var userList = await userRepo.FindAsync(u => u.Email == dto.Email);
-            var user = userList.FirstOrDefault();
+            var user = await userRepo.FirstOrDefaultAsync(u => u.Email == dto.Email);
 
             if (user == null)
-                throw new Exception("User not found.");
+                throw new Exception(CommonErrors.UserNotFound);
 
             var result = _passwordHasher.VerifyHashedPassword(dto.Email, user.PasswordHash, dto.Password);
+
             if (result != PasswordVerificationResult.Success)
-                throw new Exception("Invalid password.");
+                throw new Exception(CommonErrors.InvalidCredentials);
 
             var token = _tokenService.CreateToken(dto);
-            var userResponse = new LoginResponseModel
+
+            return new LoginResponseModel
             {
                 UserId = user.Id,
+                UserName = user.FullName,
                 LoginResponseString = "Login successful",
                 UserEmail = dto.Email,
                 AccessToken = token
             };
-            return userResponse;
         }
-        
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+
+        public async Task<IEnumerable<UserModel>> GetAllUsersAsync()
         {
             var userRepo = _unitOfWork.Repository<User>();
-            return await userRepo.GetAllAsync();
+            var users = await userRepo.GetAllAsync();
+
+            return users.Select(u => new UserModel
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                Email = u.Email
+            });
         }
     }
 }

@@ -8,9 +8,7 @@ namespace Snera_Core.Services
     public interface IUserService
     {
         Task<User> RegisterUserAsync(UserRegisterModel dto);
-
         Task<LoginResponseModel> LoginUserAsync(UserLoginModel dto);
-
-        Task<IEnumerable<User>> GetAllUsersAsync();
+        Task<IEnumerable<UserModel>> GetAllUsersAsync();
     }
 }
