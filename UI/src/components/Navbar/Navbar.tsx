@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import Searchbar from '../ResponsiveSearch/searchbar'
 import HamBurger from '../Hamburger/HamBurger'
-import { useNavigate } from "react-router-dom";
-
-
+import { Link, useNavigate } from "react-router-dom";
 import logodark from "../../assets/snera-dark-remove-bg.png"
 import logolight from "../../assets/Snera-canva-2__1_-crop-removebg-light.png"
 import ThemeToggle from '../Theme/ThemeToggle';
@@ -19,10 +17,29 @@ const Navbar: React.FC = () => {
     const [user, setUser] = useState<UserType | null>(null);
     const [loadingUser, setLoadingUser] = useState(true);
     const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
 
+    const handleLogout = async () => {
+        setLoading(true); // 🔥 Start loader
 
+        try {
+            // (1) Optional: If API logout call hai
+            // await API.post("/logout");
 
+            // (2) Local storage clear
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
 
+            // (3) Thoda artificial delay for smooth loader (optional)
+            await new Promise((res) => setTimeout(res, 800));
+
+            navigate("/login");   // 🔥 Redirect user
+        } catch (e) {
+            console.error("Logout error:", e);
+        } finally {
+            setLoading(false); // 🔥 Stop loader
+        }
+    };
 
     useEffect(() => {
         const savedTheme = localStorage.getItem("theme");
@@ -115,7 +132,7 @@ const Navbar: React.FC = () => {
                                                 <div className=" font-semibold">{!loadingUser && (user?.userName || user?.email || "")} </div>
                                                 <div className="text-[12px] text-[var(--text-secondary)]"> {!loadingUser && (user?.email || "")}</div>
                                             </div>
-                                        </div> 
+                                        </div>
 
                                         <div className="flex flex-col gap-3 m-3   border-b border-[var(--border-color)]">
                                             <div className="flex justify-between">
@@ -132,7 +149,7 @@ const Navbar: React.FC = () => {
                                             </div>
 
                                         </div>
- 
+
                                         <div className="flex flex-col  ">
                                             <div className="flex gap-3 items-center h-10 hover:bg-[var(--bg-secondary)] transition-[.2s] p-3 mt-1.5 text-[var(--text-primary)]">
                                                 <svg className="size-4 fill-[var(--text-secondary)]" viewBox="0 0 24 24"  >
@@ -141,12 +158,14 @@ const Navbar: React.FC = () => {
                                                 <p>My Profile</p>
                                             </div>
 
-                                            <div className="flex gap-3 items-center h-10 hover:bg-[var(--bg-secondary)] transition-[.2s] p-3 text-[var(--text-primary)]">
+                                            <Link to="/CreatePost"
+                                                className="flex gap-3 items-center h-10 hover:bg-[var(--bg-tertiary)] transition-[.2s] p-3 text-[var(--text-primary)]">
                                                 <svg className="size-4 fill-[var(--text-secondary)]" viewBox="0 0 24 24" >
                                                     <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
                                                 </svg>
                                                 <p>Create New</p>
-                                            </div>
+                                            </Link>
+
                                             <div className="flex gap-3 items-center h-10 hover:bg-[var(--bg-secondary)] transition-[.2s] p-3 text-[var(--text-primary)]">
                                                 <svg className="size-4 fill-[var(--text-secondary)]" viewBox="0 0 24 24" > <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z" />
                                                 </svg>
@@ -154,7 +173,7 @@ const Navbar: React.FC = () => {
                                             </div>
                                             <div className=" btn box-shadow-none bg-black hover:bg-[#404040] border-none outline-none text-white p-3 m-3">View Full Profile</div>
                                             <button
-                                                className="w-full text-left px-2 py-2 rounded hover:bg-[var(--bg-tertiary)] text-red-500"
+                                                className="w-full text-center px-2 py-2 rounded hover:bg-[var(--bg-tertiary)] text-red-500 "
                                                 onClick={() => {
                                                     localStorage.removeItem("token");
                                                     localStorage.removeItem("user");

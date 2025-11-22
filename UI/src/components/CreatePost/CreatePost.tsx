@@ -17,10 +17,12 @@ const CreatePost: React.FC = () => {
   const [skillsNeed, setSkillsNeed] = useState<string[]>([]);
   const [skillHaveInput, setSkillHaveInput] = useState("");
   const [skillNeedInput, setSkillNeedInput] = useState("");
-
+  const [showCancelPopup, setShowCancelPopup] = useState(false);
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<any>(null);
- const navigate = useNavigate();
-  // Load logged in user
+  const navigate = useNavigate();
+  
   useEffect(() => {
     try {
       const raw = localStorage.getItem("user");
@@ -79,18 +81,17 @@ const CreatePost: React.FC = () => {
       roles: [],
     };
 
-    console.log("FINAL PAYLOAD:", payload);
-    try { 
+    setLoading(true);
+    try {
 
       const res = await API.post(
         "/Post",
         payload);
- 
-      navigate("/Home");
-      console.log(res.data);
+setLoading(false); 
+      setShowSuccessPopup(true);
     } catch (err: any) {
-      console.error("Create post error:", err);
-      alert("Post creation failed! See console.");
+      setLoading(false); 
+      console.error("Create post error:", err); 
     }
 
   };
@@ -119,12 +120,12 @@ const CreatePost: React.FC = () => {
         {/* --- POST TYPE SECTION --- */}
         <div className="mb-[30px] pb-[20px] border-b border-[var(--border-color)]">
           <h2 className="text-[20px] font-semibold mb-4 text-[var(--text-primary)] flex items-center gap-2">
-            <svg className="w-5 h-5 fill-[var(--accent-color)]"><path d="M19 3H5v18h14V3zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
+            <svg className="w-6 h-6 fill-[var(--accent-color)] rounded-sm "><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z" /></svg>
             Post Type
           </h2>
 
           <label className="font-semibold text-[14px] text-[var(--text-primary)]">
-            Post Category<span className="text-red-500">*</span>
+            Post Category<span className="text-red-500"> *</span>
           </label>
           <select
             id="post_Type"
@@ -136,51 +137,59 @@ const CreatePost: React.FC = () => {
               rounded-lg text-[var(--text-primary)]
             "
           >
-            <option value="">Select category</option>
+            <option value="" >Select category</option>
             <option value="partner">Looking for Partner</option>
             <option value="client">Client Project</option>
             <option value="showcase">Project Showcase</option>
             <option value="team">Looking for Team</option>
             <option value="freelance">Freelance Work</option>
           </select>
+          <div className="text-[12px] mt-2.5">Choose the purpose of your post</div>
         </div>
 
         {/* --- BASIC INFORMATION --- */}
         <div className="mb-[30px] pb-[20px] border-b border-[var(--border-color)]">
           <h2 className="text-[20px] font-semibold mb-4 text-[var(--text-primary)] flex items-center gap-2">
-            <svg className="w-5 h-5 fill-[var(--accent-color)]"><path d="M12 2C6 2 2 6 2 12s4 10 10 10 10-4 10-10S18 2 12 2z" /></svg>
+            <svg className="w-6 h-6 fill-[var(--accent-color)]">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+            </svg>
             Basic Information
           </h2>
 
           <label className="font-semibold text-[14px] text-[var(--text-primary)]">
-            Project Title<span className="text-red-500">*</span>
+            Project Title<span className="text-red-500"> *</span>
           </label>
           <input
             id="title"
             value={form.title}
             onChange={handleChange}
             required
-            className="w-full mt-2 p-3 bg-[var(--bg-tertiary)] border-2 border-[var(--border-color)] rounded-lg"
+            className="w-full mt-2 p-3 bg-[var(--bg-tertiary)] border-2 border-[var(--border-color)] rounded-lg placeholder:text-[var(--text-tertiary)]"
             placeholder="Enter project title"
           />
+          <div className="text-[12px] mt-3">Make it clear and descriptive</div>
 
           <label className="font-semibold mt-4 block text-[14px] text-[var(--text-primary)]">
-            Description<span className="text-red-500">*</span>
+            Description<span className="text-red-500"> *</span>
           </label>
           <textarea
             id="description"
             value={form.description}
             onChange={handleChange}
             required
-            className="w-full mt-2 p-3 bg-[var(--bg-tertiary)] border-2 border-[var(--border-color)] rounded-lg min-h-[120px]"
+            className="w-full mt-2 p-3 bg-[var(--bg-tertiary)] border-2 border-[var(--border-color)] rounded-lg min-h-[120px] placeholder:text-[var(--text-tertiary)]"
             placeholder="Describe your project..."
           ></textarea>
+          <div className="text-[12px] mt-3">Be specific about your goals, requirements, or achievements</div>
+
         </div>
 
         {/* --- SKILLS SECTION --- */}
         <div className="mb-[30px] pb-[20px] border-b border-[var(--border-color)]">
           <h2 className="text-[20px] font-semibold mb-4 text-[var(--text-primary)] flex items-center gap-2">
-            <svg className="w-5 h-5 fill-[var(--accent-color)]"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7L2 9l7-1z" /></svg>
+            <svg className="w-6 h-6 fill-[var(--accent-color)]">
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
             Skills & Requirements
           </h2>
 
@@ -208,12 +217,12 @@ const CreatePost: React.FC = () => {
               value={skillHaveInput}
               onChange={(e) => setSkillHaveInput(e.target.value)}
               placeholder="Add a skill"
-              className="flex-1 p-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg"
+              className="flex-1 p-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg placeholder:text-[var(--text-tertiary)]"
             />
             <button
               type="button"
               onClick={addSkillHave}
-              className="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg"
+              className="px-4 py-2 bg-[var(--accent-color)] text-[var(--button-text)] hover:bg-[var(--accent-hover)] hover:-translate-y-1 transition rounded-lg"
             >
               Add
             </button>
@@ -243,12 +252,12 @@ const CreatePost: React.FC = () => {
               value={skillNeedInput}
               onChange={(e) => setSkillNeedInput(e.target.value)}
               placeholder="Add a skill"
-              className="flex-1 p-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg"
+              className="flex-1 p-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg placeholder:text-[var(--text-tertiary)]"
             />
             <button
               type="button"
               onClick={addSkillNeed}
-              className="px-4 py-2 bg-[var(--accent-color)] text-white rounded-lg"
+              className="px-4 py-2 bg-[var(--accent-color)] text-[var(--button-text)] hover:bg-[var(--accent-hover)] hover:-translate-y-1 transition rounded-lg"
             >
               Add
             </button>
@@ -258,7 +267,9 @@ const CreatePost: React.FC = () => {
         {/* --- ADDITIONAL DETAILS --- */}
         <div className="mb-[30px]">
           <h2 className="text-[20px] font-semibold mb-4 text-[var(--text-primary)] flex items-center gap-2">
-            <svg className="w-5 h-5 fill-[var(--accent-color)]"><path d="M19 3H5v18h14V3z" /></svg>
+            <svg className="w-6 h-6 fill-[var(--accent-color)]">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z" />
+            </svg>
             Additional Details
           </h2>
 
@@ -266,14 +277,15 @@ const CreatePost: React.FC = () => {
 
             {/* Budget */}
             <div>
-              <label className="font-semibold text-[14px]">Budget</label>
+              <label className="font-semibold text-[14px]">Budget (if applicable)</label>
               <input
                 id="budget"
                 value={form.budget}
                 onChange={handleChange}
-                className="w-full mt-2 p-3 bg-[var(--bg-tertiary)] border-2 border-[var(--border-color)] rounded-lg"
+                className="w-full mt-2 p-3 bg-[var(--bg-tertiary)] border-2 border-[var(--border-color)] rounded-lg placeholder:text-[var(--text-tertiary)]"
                 placeholder="₹15,000"
               />
+              <div className="text-[12px] mt-2">Leave empty if not applicable</div>
             </div>
 
             {/* Timeline */}
@@ -333,19 +345,71 @@ const CreatePost: React.FC = () => {
 
         {/* Submit Buttons */}
         <div className="flex justify-end gap-4 border-t pt-6 border-[var(--border-color)]">
-          <button type="button" className="px-6 py-3 bg-transparent text-[var(--text-secondary)] border border-[var(--border-color)] rounded-lg">
+          <button type="button"
+            onClick={() => setShowCancelPopup(true)}
+            className="px-6 py-3 bg-[var(--accent-color)] text-[var(--button-text)] rounded-lg flex items-center gap-2 hover:bg-[var(--accent-hover)] hover:-translate-y-1 transition">
             Cancel
           </button>
 
           <button
             type="submit"
-            className="px-6 py-3 bg-[var(--accent-color)] text-white rounded-lg flex items-center gap-2 hover:bg-[var(--accent-hover)] hover:-translate-y-1 transition"
+            className="px-6 py-3 bg-[var(--accent-color)] text-[var(--button-text)] rounded-lg flex items-center gap-2 hover:bg-[var(--accent-hover)] hover:-translate-y-1 transition"
           >
-            <svg width="16" height="16" fill="currentColor"><path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" /></svg>
+            <svg width="22" height="22" fill="currentColor"><path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" /></svg>
             Create Post
           </button>
         </div>
       </form>
+      {showCancelPopup && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.35)] backdrop-blur-sm  bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[var(--bg-primary)] p-6 rounded-xl shadow-lg w-[350px] text-center">
+
+            <h2 className="text-xl font-semibold mb-3 text-[var(--text-primary)]">Leave this page?</h2>
+            <p className="text-[var(--text-primary)] mb-6">
+              Are you sure you want to discard this post and go back?
+            </p>
+
+            <div className="flex justify-center gap-4">
+              {/* No button */}
+              <button
+                onClick={() => setShowCancelPopup(false)}
+                className="px-6 py-3 bg-[var(--accent-color)] text-[var(--button-text)] rounded-lg flex items-center gap-2 hover:bg-[var(--accent-hover)] hover:-translate-y-1 transition"
+              >
+                No
+              </button>
+
+              {/* Yes button */}
+              <button
+                onClick={() => navigate("/Home")}
+                className="  bg-red-500 px-6 py-3  text-[var(--button-text)] rounded-lg flex items-center gap-2   hover:-translate-y-1 transition"
+              >
+                Yes
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+      {showSuccessPopup && (
+        <div className="fixed inset-0 bg-[rgba(0,0,0,0.35)] backdrop-blur-sm bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[var(--bg-primary)] p-6 rounded-xl shadow-lg w-[350px] text-center">
+
+            <h2 className="text-xl font-semibold mb-3 text-[var(--text-primary)]">Post Created!</h2>
+            <p className="text-[var(--text-primary)] mb-6">
+              Your post has been successfully created.
+            </p>
+
+            <button
+              onClick={() => navigate(-1)}  
+              className="px-6 py-2 bg-green-600 text-[var(--button-text)] rounded-lg  hover:-translate-y-1 transition"
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
+
     </main>
   );
 };
