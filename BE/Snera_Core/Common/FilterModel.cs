@@ -2,15 +2,14 @@
 {
     public class FilterModel
     {
-        public int PageNumber { get; set; } = 1;     // Default to first page
-        public int PageSize { get; set; } = 10;      // Items per page
+        public int PageNumber { get; set; } = 1;     
+        public int PageSize { get; set; } = 10;     
 
-        public string? Search { get; set; }          // Optional keyword
-        public string? SortBy { get; set; } = "Created_Timestamp";  // Default sort field
-        public bool IsDescending { get; set; } = true;              // Default sort order
+        public string? Search { get; set; }      
+        public string? SortBy { get; set; } = "Created_Timestamp";  
+        public bool IsDescending { get; set; } = true;           
 
-        // Optional general-purpose filters
-        public string? Type { get; set; }            // e.g., Post_Type, UserType, etc.
+        public string? Type { get; set; }          
         public string? State { get; set; }
     }
 }

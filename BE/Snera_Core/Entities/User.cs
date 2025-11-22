@@ -7,6 +7,7 @@ namespace Snera_Core.Entities
     {
         public Guid Id { get; set; }
         public string FullName { get; set; } = string.Empty;
+        public string Avtar_Name { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
         public string ProfileType { get; set; } = string.Empty;

@@ -39,6 +39,7 @@ namespace Snera_Core.Services
             var newUser = new User
             {
                 FullName = dto.Full_Name,
+                Avtar_Name = GenerateAvatarName(dto.Full_Name),
                 Email = dto.Email,
                 PasswordHash = hashedPassword,
                 ProfileType = dto.Profile_Type,
@@ -103,5 +104,16 @@ namespace Snera_Core.Services
                 Email = u.Email
             });
         }
+        private static string GenerateAvatarName(string fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+                return string.Empty;
+
+            var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            return parts.Length == 1
+                ? parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper()
+                : $"{parts.First()[0]}{parts.Last()[0]}".ToUpper();
+        }
+
     }
 }

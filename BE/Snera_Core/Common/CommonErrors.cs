@@ -15,6 +15,11 @@
         public const string PostDetailsNotFound = "Post details not found.";
         public const string SkillCreationFailed = "Failed to create post skills.";
         public const string RoleCreationFailed = "Failed to create post roles.";
+        public const string PostTitleNotNull = "Post Title can't Be Null.";
+        public const string PostDescriptionNotNull = "Post Description can't Be Null.";
+        public const string PostHaveSkillNotNull = "Need at least one Having skill";
+        public const string PostNeedSkillNotNull = "Need at least one Needed skill";
+        public const string PostSkillTypeNotValid = "Post Skill Type is not Valied";
 
         // Generic Errors
         public const string NotFound = "The requested record was not found.";

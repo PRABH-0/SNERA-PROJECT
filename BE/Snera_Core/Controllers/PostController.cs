@@ -36,11 +36,11 @@ namespace Snera_Core.Controllers
         }
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> GetAllPost([FromQuery] FilterModel filter)
+        public async Task<IActionResult> GetAllPost(Guid userId, [FromQuery] FilterModel filter )
         {
             try
             {
-                var response = await _postService.GetAllPostAsync(filter);
+                var response = await _postService.GetAllPostAsync(filter,userId);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -72,6 +72,34 @@ namespace Snera_Core.Controllers
                 return Ok(response);
             }
             catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        [HttpGet("GetPostComments/{postId}")]
+        [Authorize]
+        public async Task<IActionResult> GetPostComments(Guid postId)
+        {
+            try
+            {
+                var response = await _postService.GetPostComments(postId);
+                return Ok(response);
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        [HttpGet("GetPostLikes/{postId}")]
+        [Authorize]
+        public async Task<IActionResult> GetPostLikes(Guid postId)
+        {
+            try
+            {
+                var response = await _postService.GetPostLikes(postId);
+                return Ok(response);
+            }
+            catch(Exception ex)
             {
                 return BadRequest(new { error = ex.Message });
             }

@@ -8,7 +8,9 @@
         public string Title { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public int Budget { get; set; }
-        public int Post_Like { get; set; }
+        public int Like_Count { get; set; } = 0;
+        public int Comment_Count { get; set; } = 0;
+        public bool Is_Like { get; set; } = false;
         public DateTime Created_Timestamp { get; set; } 
         public DateTime? Last_Edited_By { get; set; }
         public string Record_State { get; set; } = "Active";

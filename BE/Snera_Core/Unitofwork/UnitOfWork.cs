@@ -25,7 +25,7 @@ public class UnitOfWork : IUnitOfWork
         return (IRepository<T>)_repositories[typeof(T)];
     }
 
-    // Add these properties for commonly used repositories
+    // User related repositories
     private IRepository<User>? _userRepository;
     public IRepository<User> Users
     {
@@ -48,7 +48,7 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    // Add properties for your post-related entities
+    // Post related repositories
     private IRepository<UserPost>? _userPostRepository;
     public IRepository<UserPost> UserPosts
     {
@@ -57,6 +57,39 @@ public class UnitOfWork : IUnitOfWork
             if (_userPostRepository == null)
                 _userPostRepository = Repository<UserPost>();
             return _userPostRepository;
+        }
+    }
+
+    private IRepository<UserPost_Details>? _userPostDetailsRepository;
+    public IRepository<UserPost_Details> UserPostDetails
+    {
+        get
+        {
+            if (_userPostDetailsRepository == null)
+                _userPostDetailsRepository = Repository<UserPost_Details>();
+            return _userPostDetailsRepository;
+        }
+    }
+
+    private IRepository<UserPost_Skills>? _userPostSkillsRepository;
+    public IRepository<UserPost_Skills> UserPostSkills
+    {
+        get
+        {
+            if (_userPostSkillsRepository == null)
+                _userPostSkillsRepository = Repository<UserPost_Skills>();
+            return _userPostSkillsRepository;
+        }
+    }
+
+    private IRepository<UserPost_Roles>? _userPostRolesRepository;
+    public IRepository<UserPost_Roles> UserPostRoles
+    {
+        get
+        {
+            if (_userPostRolesRepository == null)
+                _userPostRolesRepository = Repository<UserPost_Roles>();
+            return _userPostRolesRepository;
         }
     }
 
