@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import API from "../../api/api";
 import FullScreenLoader from "../Loader/FullScreenLoader";
 import CommentsPopup from "../Comments/CommentsPopup";
+import { getAvatarName } from "../../utils/getAvatarName";
 
 type SkillItem = { name: string; type?: "have" | "need" };
 
@@ -20,7 +21,7 @@ type Post = {
   likes?: number;
   comments?: number;
   isLiked?: boolean;
-
+created_Timestamp?: string;
 };
 
 
@@ -39,7 +40,7 @@ const Home: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<string>("");
   const [stateFilter, setStateFilter] = useState<string>("");
   const [openComments, setOpenComments] = useState<string | null>(null);
-  const fetchedExtra = useRef(false);
+   
   const didFetch = useRef(false);
 
 
@@ -78,15 +79,12 @@ const Home: React.FC = () => {
       post_Id: post.id,
       user_Id: user.userId
     };
-
-    // 🔵 Send Toggle Like Request
+ 
     await API.post("/Post/UpdateLike", payload);
-
-    // 🔵 Fetch updated like count
+ 
     const resLikes = await API.get(`/Post/GetPostLikes/${post.id}`);
     const newLikes = resLikes.data.postLikes ?? 0;
-
-    // 🔵 Update UI state
+ 
     setPosts(prev =>
       prev.map(p =>
         p.id === post.id
@@ -116,10 +114,10 @@ const handleComment = async (postId: string | number, commentText: string) => {
       post_Id: postId
     };
 
-    // 🔵 Create comment
+    
     await API.post("/Post/CreateComment", payload);
 
-    // 🔵 Update UI instantly
+     
     setPosts(prev =>
       prev.map(p =>
         p.id === postId
@@ -178,9 +176,7 @@ useEffect(() => {
       description: p.description,
       postType: p.post_Type,
       author_Name: p.author_Name,
-
-      avtar_Name: p.avtar_Name?.trim() || p.author_Name?.slice(0, 2).toUpperCase(),
-
+      avtar_Name: getAvatarName(p.author_Name),
       skills: p.skills?.map((s: any) => ({
         name: s.skill_Name,
         type: s.skill_Type
@@ -190,10 +186,19 @@ useEffect(() => {
 
       likes: p.like_Count ?? 0,
       comments: p.comment_Count ?? 0,
-      isLiked: p.is_Like ?? false
+      isLiked: p.is_Like === true,
+      created_Timestamp: p.created_Timestamp 
+
     }));
 
-    setPosts(normalized);
+   setPosts(
+  normalized.sort(
+    (a, b) =>
+      new Date(b.created_Timestamp!).getTime() -
+      new Date(a.created_Timestamp!).getTime()
+  )
+);
+
 
   } catch (err) {
     console.error("Failed to fetch posts: ", err);
@@ -376,7 +381,8 @@ useEffect(() => {
                 isOpen={true}
                 postId={openComments}
                 onClose={() => setOpenComments(null)}
-                onAddComment={(text) => handleComment(openComments!, text)}
+                onAddComment={(text) => handleComment(openComments!, text)}              
+
               />
             )}
 

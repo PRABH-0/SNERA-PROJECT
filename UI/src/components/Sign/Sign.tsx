@@ -1,17 +1,9 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect  } from "react";
 import API from "../../api/api";
 import SignInForm from "../Sign/SignInForm";
-import RegisterForm from "../Sign/RegisterForm";
-import Lottie from "lottie-react";
-import type { LottieRefCurrentProps } from "lottie-react";
+import RegisterForm from "../Sign/RegisterForm"; 
 import FullScreenLoader from "../Loader/FullScreenLoader";
-
-
-import loadingAnimation from "../../assets/animations/loading.json";
 import { useNavigate } from "react-router-dom";
-
-
-
 
 interface SignProps {
     isOpen: boolean;
@@ -22,10 +14,12 @@ interface SignProps {
 const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) => {
     const [activeTab, setActiveTab] = useState<"signin" | "getstarted">(defaultTab);
     const [loading, setLoading] = useState(false);
+
     const [loginData, setLoginData] = useState({ email: "", password: "" });
     const [loginError, setLoginError] = useState("");
-    const [passwordError, setPasswordError] = useState("")
+
     const [registerError, setRegisterError] = useState("");
+    const [passwordError, setPasswordError] = useState("")
 
     const [profileType, setProfileType] = useState("student");
     const [experience, setExperience] = useState("0-1 years");
@@ -68,11 +62,14 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+        if (registerError) setRegisterError("");
+        if (passwordError) setPasswordError("");
     };
 
     const handleLoginChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
         setLoginData((prev) => ({ ...prev, [name]: value }));
+        if (loginError) setLoginError("");
     };
 
 
@@ -80,11 +77,23 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
     const handleRegisterSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        if (formData.password !== formData.confirmPassword) {
-            setPasswordError("Passwords do not match!");
-            setLoading(false);
-            return;
-        }
+        setRegisterError("");
+        setPasswordError("");
+
+        if (!formData.full_Name.trim())
+            return setRegisterError("Full name is required"), setLoading(false);
+
+        if (!formData.email.trim())
+            return setRegisterError("Email is required"), setLoading(false);
+
+        if (!formData.password.trim())
+            return setRegisterError("Password is required"), setLoading(false);
+
+        if (formData.password.length < 6)
+        return setRegisterError("Password must be at least 6 characters"), setLoading(false);
+
+        if (formData.password !== formData.confirmPassword)
+            return setPasswordError("Passwords do not match!"), setLoading(false);
 
         try {
             const payload = {
@@ -196,7 +205,7 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
 
                 <div className="flex justify-center w-full m-auto mb-6">
                     <div
-                        className={`h-[2px] w-1/2 transition-all duration-300 ${activeTab === "signin" ? "bg-[var(--accent-color)] translate-x-[-50%]" : "bg-[var(--accent-color)] translate-x-[50%]"
+                        className={`h-0.5 w-1/2 transition-all duration-300 ${activeTab === "signin" ? "bg-[var(--accent-color)] translate-x-[-50%]" : "bg-[var(--accent-color)] translate-x-[50%]"
                             }`}
                     />
                 </div>

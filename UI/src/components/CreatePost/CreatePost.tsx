@@ -218,6 +218,12 @@ setLoading(false);
               onChange={(e) => setSkillHaveInput(e.target.value)}
               placeholder="Add a skill"
               className="flex-1 p-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg placeholder:text-[var(--text-tertiary)]"
+              onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addSkillHave();
+              }
+            }}
             />
             <button
               type="button"
@@ -253,6 +259,12 @@ setLoading(false);
               onChange={(e) => setSkillNeedInput(e.target.value)}
               placeholder="Add a skill"
               className="flex-1 p-2 bg-[var(--bg-tertiary)] border border-[var(--border-color)] rounded-lg placeholder:text-[var(--text-tertiary)]"
+              onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                addSkillNeed();
+              }
+            }}
             />
             <button
               type="button"

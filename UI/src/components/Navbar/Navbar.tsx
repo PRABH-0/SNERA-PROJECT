@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import logodark from "../../assets/snera-dark-remove-bg.png"
 import logolight from "../../assets/Snera-canva-2__1_-crop-removebg-light.png"
 import ThemeToggle from '../Theme/ThemeToggle';
+import { getAvatarName } from '../../utils/getAvatarName';
 
 type UserType = {
     userName?: string;
@@ -78,17 +79,7 @@ const Navbar: React.FC = () => {
         return () => observer.disconnect();
     }, []);
 
-    const getInitial = () => {
-        if (loadingUser) return "";
-        const name = user?.userName?.trim();
-        if (name && name.length) return name.charAt(0).toUpperCase();
-        const email = user?.email?.trim();
-        if (email && email.length) return email.charAt(0).toUpperCase();
-        return "";
-    };
-
-
-
+     
     return (
         <div>
             <div className="fixed top-0 left-0 w-full bg-[var(--bg-secondary)] border-b border-[var(--border-color)]  flex items-center justify-between  z-50 h-16 px-2">
@@ -110,14 +101,14 @@ const Navbar: React.FC = () => {
                                 {/* Profile Avatar */}
                                 <div className="btn btn-ghost btn-circle avatar cursor-pointer">
                                     <div className="w-9 h-9 rounded-full bg-[var(--accent-color)] text-[var(--text-forth)] flex items-center justify-center font-semibold text-lg cursor-pointer">
-                                        {getInitial()}
+                                        {getAvatarName(user?.userName)}
                                     </div>
                                 </div>
 
                                 {/* Hover Box */}
 
                                 <div
-                                    className="absolute right-2 top-12 border-[.5px] border-[var(--border-color)] w-60 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded    opacity-0 invisible 
+                                    className="absolute right-2 top-12 border-[.5px] border-[var(--border-color)] w-65 bg-[var(--bg-secondary)] text-[var(--text-primary)] rounded    opacity-0 invisible 
                                 group-hover:opacity-100 group-hover:visible
                                  transition-all duration-200 z-10"
                                 >
@@ -125,7 +116,7 @@ const Navbar: React.FC = () => {
                                         <div className="flex gap-5 h-16  p-2  m-3 border-b border-[var(--border-color)]">
 
                                             <div className="w-10 h-10 rounded-full bg-[var(--accent-color)] text-[var(--text-forth)] flex items-center justify-center font-semibold text-lg">
-                                                {getInitial()}
+                                                {getAvatarName(user?.userName)}
                                             </div>
 
                                             <div className="flex flex-col">

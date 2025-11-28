@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import API from "../../api/api";
 import MiniLoader from "../Loader/MiniLoader";
+import { getAvatarName } from "../../utils/getAvatarName";
 
 
 interface CommentItem {
@@ -8,8 +9,8 @@ interface CommentItem {
   comment_Text: string;
   created_Timestamp: string;
   user_Id: string;
-  user_Name: string;     // we generate
-  user_Avatar: string;   // we generate
+  user_Name: string;
+  user_Avatar: string;
 }
 
 interface Props {
@@ -17,6 +18,8 @@ interface Props {
   postId: string;
   onClose: () => void;
   onAddComment: (text: string) => Promise<void>;
+  avatarName?: string;
+
 }
 
 const CommentsPopup: React.FC<Props> = ({
@@ -28,6 +31,17 @@ const CommentsPopup: React.FC<Props> = ({
   const [comments, setComments] = useState<CommentItem[]>([]);
   const [newComment, setNewComment] = useState("");
   const [loadingComments, setLoadingComments] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useLayoutEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
+  }, [isOpen]);
+  ;
+
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -72,12 +86,19 @@ const CommentsPopup: React.FC<Props> = ({
           created_Timestamp: c.created_Timestamp,
           user_Id: c.user_Id,
           user_Name: c.author_Name,
-          user_Avatar: c.avtar_Name?.toUpperCase() || "U"
+          user_Avatar: getAvatarName(c.author_Name),
         };
       });
 
 
-      setComments(mapped);
+      setComments(
+        mapped.sort(
+          (a: any, b: any) =>
+            new Date(b.created_Timestamp).getTime() -
+            new Date(a.created_Timestamp).getTime()
+        )
+      );
+
     } catch (err) {
       console.error("Error loading comments", err);
     } finally {
@@ -87,7 +108,6 @@ const CommentsPopup: React.FC<Props> = ({
 
 
   const formatTime = (utcDateString: string) => {
-    // convert backend UTC → local time
     const date = new Date(utcDateString);
     const local = new Date(date.getTime() + (new Date().getTimezoneOffset() * -60000));
 
@@ -99,8 +119,6 @@ const CommentsPopup: React.FC<Props> = ({
 
     const days = Math.floor(seconds / 86400);
     if (days < 10) return `${days} days ago`;
-
-    // If more than 10 days → show exact date
     return local.toLocaleDateString("en-IN", {
       day: "2-digit",
       month: "short",
@@ -122,9 +140,11 @@ const CommentsPopup: React.FC<Props> = ({
       created_Timestamp: new Date().toISOString(),
       user_Id: user.userId,
       user_Name: user.userName,
-      user_Avatar: (user.userName || "U").slice(0, 2).toUpperCase()
-    };
+      user_Avatar: getAvatarName(user.userName),
 
+
+    };
+    console.log(newLocalComment)
     setComments(prev => [newLocalComment, ...prev]);
 
     setNewComment("");
@@ -152,7 +172,7 @@ const CommentsPopup: React.FC<Props> = ({
 
           {comments.map((c) => (
             <div key={c.id} className="flex items-center gap-3 pb-3 ">
-              
+
               <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-semibold">
                 {c.user_Avatar}
               </div>
@@ -164,7 +184,7 @@ const CommentsPopup: React.FC<Props> = ({
                     {formatTime(c.created_Timestamp)}
                   </div>
                 </div>
-              <p className="text-[var(--text-primary)] mt-1">{c.comment_Text}</p>
+                <p className="text-[var(--text-primary)] mt-1">{c.comment_Text}</p>
 
               </div>
             </div>
@@ -179,10 +199,17 @@ const CommentsPopup: React.FC<Props> = ({
 
         <div className="  absolute bottom-0 right-0 left-0 p-4 border-t flex gap-3">
           <input
+            ref={inputRef}
             className="flex-1 p-3 bg-[var(--bg-tertiary)] border-1 border-[var(--border-color)] rounded-lg  placeholder:text-[var(--text-tertiary)]"
             placeholder="Add a comment..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handlePostComment();
+              }
+            }}
           />
           <button
             onClick={handlePostComment}
