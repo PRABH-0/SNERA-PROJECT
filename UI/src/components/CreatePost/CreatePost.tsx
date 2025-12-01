@@ -60,26 +60,33 @@ const CreatePost: React.FC = () => {
     e.preventDefault();
 
     const payload = {
-      title: form.title,
-      description: form.description,
-      post_Type: form.post_Type,
-      budget: Number(form.budget),
-      user_Id: user?.userId ?? null,
-      project_Duration: form.timeline,
-      team_Size: Number(form.teamSize),
-      author_Experience: form.experienceLevel,
-      requirements: "",
-      team_Info: "",
-      author_Bio: "",
-      author_Rating: 0,
-      project_Status: "active",
+  post: form.title,   
 
-      skills: [
-        ...skillsHave.map((s) => ({ skill_Name: s, skill_Type: "have" })),
-        ...skillsNeed.map((s) => ({ skill_Name: s, skill_Type: "need" })),
-      ],
-      roles: [],
-    };
+  title: form.title,
+  description: form.description,
+  post_Type: form.post_Type,
+  budget: Number(form.budget || 0),
+  user_Id: user?.userId ?? null,
+
+  project_Duration: form.timeline,
+  
+  team_Size: Number(form.teamSize.replace(/[^0-9]/g, "")) || 0,
+
+  author_Experience: form.experienceLevel,
+  requirements: "",
+  team_Info: "",
+  author_Bio: "",
+  author_Rating: 0,
+  project_Status: "active",
+
+  skills: [
+    ...skillsHave.map((s) => ({ skill_Name: s, skill_Type: "have" })),
+    ...skillsNeed.map((s) => ({ skill_Name: s, skill_Type: "need" })),
+  ],
+
+  roles: []
+};
+
 
     setLoading(true);
     try {
