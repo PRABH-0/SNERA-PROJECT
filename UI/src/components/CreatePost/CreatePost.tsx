@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import API from "../../api/api";
 import { useNavigate } from "react-router-dom";
+import MiniLoader from "../Loader/MiniLoader";
 
 const CreatePost: React.FC = () => {
   const [form, setForm] = useState({

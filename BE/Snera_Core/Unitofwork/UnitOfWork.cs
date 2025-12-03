@@ -1,6 +1,7 @@
 ﻿using Snera_Core.Data;
 using Snera_Core.Entities;
 using Snera_Core.Entities.PostEntities;
+using Snera_Core.Entities.ProjectEntities;
 using Snera_Core.Interfaces;
 using Snera_Core.Repositories;
 using Snera_Core.UnitOfWork;
@@ -115,7 +116,60 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
-    // Add other repository properties as needed...
+    private IRepository<ProjectCurrentTasks>? _projectCurrentTasksRepository;
+    public IRepository<ProjectCurrentTasks> ProjectCurrentTask
+    {
+        get
+        {
+            if (_projectCurrentTasksRepository == null)
+                _projectCurrentTasksRepository = Repository<ProjectCurrentTasks>();
+            return _projectCurrentTasksRepository;
+        }
+    }
+
+    private IRepository<ProjectDeveloperRequest>? _projectDeveloperRequestRepository;
+    public IRepository<ProjectDeveloperRequest> ProjectDeveloperRequest
+    {
+        get
+        {
+            if (_projectDeveloperRequestRepository == null)
+                _projectDeveloperRequestRepository = Repository<ProjectDeveloperRequest>();
+            return _projectDeveloperRequestRepository;
+        }
+    }
+
+    private IRepository<ProjectTeamMembers>? _projectTeamMembersRepository;
+    public IRepository<ProjectTeamMembers> ProjectTeamMembers
+    {
+        get
+        {
+            if (_projectTeamMembersRepository == null)
+                _projectTeamMembersRepository = Repository<ProjectTeamMembers>();
+            return _projectTeamMembersRepository;
+        }
+    }
+
+    private IRepository<ProjectTimeline>? _projectTimelineRepository;
+    public IRepository<ProjectTimeline> ProjectTimeline
+    {
+        get
+        {
+            if (_projectTimelineRepository == null)
+                _projectTimelineRepository = Repository<ProjectTimeline>();
+            return _projectTimelineRepository;
+        }
+    }
+    private IRepository<UserProject>? _userProject;
+    public IRepository<UserProject> UserProject
+    {
+        get
+        {
+            if (_userProject == null)
+                _userProject = Repository<UserProject>();
+            return _userProject;
+        }
+    }
+
 
     public async Task<int> SaveAllAsync()
     {

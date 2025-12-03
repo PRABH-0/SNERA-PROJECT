@@ -92,11 +92,11 @@ namespace Snera_Core.Controllers
         }
         [HttpGet("GetPostLikes/{postId}")]
         [Authorize]
-        public async Task<IActionResult> GetPostLikes(Guid postId)
+        public async Task<IActionResult> GetPostLikes(Guid postId,Guid userId)
         {
             try
             {
-                var response = await _postService.GetPostLikes(postId);
+                var response = await _postService.GetPostLikes(postId,userId);
                 return Ok(response);
             }
             catch(Exception ex)

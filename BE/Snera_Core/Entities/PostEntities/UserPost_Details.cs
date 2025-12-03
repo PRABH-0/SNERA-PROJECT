@@ -9,11 +9,14 @@ namespace Snera_Core.Entities.PostEntities
         public Guid Id { get; set; }
         public Guid UserPost_Id { get; set; }
         [ForeignKey("UserPost_Id")]
-        public UserPost UserPost { get; set; }
+        public UserPost? UserPost { get; set; }
         // Other fields
         public string Project_Duration { get; set; } = string.Empty;
         public string Weekly_Commitment { get; set; } = string.Empty;
         public DateTime? Start_Date { get; set; }
+        public string Focus_Area { get; set; }= string.Empty;
+        public DateTime? End_Date { get; set; }
+        public string Difficulty_Level {  get; set; } = string.Empty;
         public string Requirements { get; set; } = string.Empty;
         public string Team_Info { get; set; } = string.Empty;
         public int Team_Size { get; set; }

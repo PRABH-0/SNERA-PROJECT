@@ -12,6 +12,6 @@ namespace Snera_Core.Interface
         Task<string> UpdatePostLikeAsync(PostLikeModel postLike);
         Task<string> CreatePostComment(PostCommentModel postComment);
         Task<PostCommentResultModel> GetPostComments(Guid postId);
-        Task<PostLikeResponseModel> GetPostLikes(Guid postId);
+        Task<PostLikeResponseModel> GetPostLikes(Guid postId,Guid userId);
     }
 }

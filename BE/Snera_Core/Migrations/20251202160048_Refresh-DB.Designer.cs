@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Snera_Core.Data;
 
@@ -11,9 +12,11 @@ using Snera_Core.Data;
 namespace Snera_Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20251202160048_Refresh-DB")]
+    partial class RefreshDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -462,9 +465,6 @@ namespace Snera_Core.Migrations
                     b.Property<DateTime>("Created_Timestamp")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("Post_Id")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Record_State")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -478,8 +478,6 @@ namespace Snera_Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Post_Id");
 
                     b.ToTable("UserProject");
                 });
@@ -676,15 +674,6 @@ namespace Snera_Core.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Snera_Core.Entities.ProjectEntities.UserProject", b =>
-                {
-                    b.HasOne("Snera_Core.Entities.PostEntities.UserPost", "UserPost")
-                        .WithMany()
-                        .HasForeignKey("Post_Id");
-
-                    b.Navigation("UserPost");
                 });
 
             modelBuilder.Entity("Snera_Core.Entities.UserSkill", b =>

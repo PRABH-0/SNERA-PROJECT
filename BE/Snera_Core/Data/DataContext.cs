@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Snera_Core.Entities;
 using Snera_Core.Entities.PostEntities;
+using Snera_Core.Entities.ProjectEntities;
 
 namespace Snera_Core.Data
 {
@@ -17,6 +18,11 @@ namespace Snera_Core.Data
         public DbSet<UserPost_Roles> UserPost_Roles { get; set; }
         public DbSet<UserPost_Skills> UserPost_Skills { get; set; }
         public DbSet<PostLikes> PostLikes { get; set; }
+        public DbSet<ProjectCurrentTasks> ProjectCurrentTasks { get; set; }
+        public DbSet<ProjectDeveloperRequest> ProjectDeveloperRequests { get; set; }
+        public DbSet<ProjectTeamMembers> ProjectTeamMembers { get; set; }
+        public DbSet<ProjectTimeline> ProjectTimelines { get; set; }
+        public DbSet<UserProject> UserProject { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

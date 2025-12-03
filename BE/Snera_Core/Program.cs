@@ -69,6 +69,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IPostService, PostService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<UserService>();
 

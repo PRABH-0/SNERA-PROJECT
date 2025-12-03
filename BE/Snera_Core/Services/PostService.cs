@@ -107,16 +107,16 @@ namespace Snera_Core.Services
                         Record_State = "Active"
                     }).ToList();
 
-                    if (skills.Any(x => x.Skill_Type != "have"&&x.Skill_Type != "need"))
-                        throw new Exception(CommonErrors.PostSkillTypeNotValid);
+                if (skills.Any(x => x.Skill_Type != "have" && x.Skill_Type != "need"))
+                    throw new Exception(CommonErrors.PostSkillTypeNotValid);
 
-                    if (skills.Any(x => x.Skill_Type != "need"))
-                        throw new Exception(CommonErrors.PostHaveSkillNotNull);
+                if (!skills.Any(x => x.Skill_Type == "have"))
+                    throw new Exception(CommonErrors.PostNeedSkillNotNull);
 
-                    if (skills.Any(x => x.Skill_Type != "have"))
-                        throw new Exception(CommonErrors.PostHaveSkillNotNull);
+                if (!skills.Any(x => x.Skill_Type == "need"))
+                    throw new Exception(CommonErrors.PostNeedSkillNotNull);
 
-                    await _unitOfWork.UserPostSkills.AddRangeAsync(skills);
+                await _unitOfWork.UserPostSkills.AddRangeAsync(skills);
             }
 
             if (post.Roles != null && post.Roles.Any())
@@ -299,15 +299,23 @@ namespace Snera_Core.Services
             };
         }
 
-        public async Task<PostLikeResponseModel> GetPostLikes(Guid postId)
+        public async Task<PostLikeResponseModel> GetPostLikes(Guid postId,Guid userId)
         {
             UserPost post = await _unitOfWork.UserPosts.GetByIdAsync(postId);
             if (post == null)
                 throw new Exception(CommonErrors.PostNotFound);
+            var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            if(user == null)
+                throw new Exception(CommonErrors.UserNotFound);
+            var userPostLike =await _unitOfWork.PostLikes.FirstOrDefaultAsync(x => x.Post_Id == postId && x.User_Id == userId);
+            bool isLike = false;
+            if (userPostLike != null)
+                isLike = true;
             int postLikesCount = await _unitOfWork.PostLikes.CountAsync(x => x.Post_Id == postId);
             PostLikeResponseModel result = new PostLikeResponseModel()
             {
                 PostLikes = postLikesCount,
+                isLike = isLike
             };
             return result;
         }
