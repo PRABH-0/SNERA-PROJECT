@@ -1,4 +1,5 @@
 ﻿using Snera_Core.Entities;
+using Snera_Core.Entities.UserEntities;
 using Snera_Core.Models.UserModels;
 using System.Collections.Generic;
 using System.Threading.Tasks;

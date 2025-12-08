@@ -13,6 +13,7 @@ namespace Snera_Core.Entities.UserEntities
         public string CurrentRole { get; set; } = string.Empty;
         public string Experience { get; set; } = string.Empty;
         public string Bio { get; set; } = string.Empty;
+        public string Avtar_Name {  get; set; } = string.Empty;
         public DateTime Created_Timestamp { get; set; } = DateTime.UtcNow;
         public string Record_State { get; set; } = "Active";
         public string User_Status { get; set; } = "Offline";

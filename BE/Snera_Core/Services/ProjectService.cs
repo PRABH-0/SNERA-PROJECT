@@ -15,111 +15,119 @@ namespace Snera_Core.Services
         }
         public async Task<ProjectModel> GetProject(string role, Guid postId)
         {
-            // 1. Get Post
-            var post = await _unitOfWork.UserPosts.GetByIdAsync(postId);
-            if (post == null)
-                throw new Exception(CommonErrors.PostNotFound);
+            return null;
+        }
+        public async Task<string> CreateProject(UserPostModel dto)
+        {
+            if (dto == null)
+                throw new Exception("Invalid project data received.");
 
-            // 2. Get UserPostDetails
-            var userProjectDetails = await _unitOfWork.UserPostDetails
-                .FirstOrDefaultAsync(x => x.UserPost_Id == postId);
+            if (dto.User_Id == null)
+                throw new Exception("User Id is missing for the project.");
 
-            // 3. Get UserProject
-            var userProject = await _unitOfWork.UserProject
-                .FirstOrDefaultAsync(x => x.Post_Id == postId);
+            Guid userId = dto.User_Id.Value;
 
-            if (userProject == null)
-                throw new Exception("Project not found for this post.");
-
-            // 4. Related Collections
-            var currentTasks = (await _unitOfWork.ProjectCurrentTask
-                .FindAsync(x => x.Project_Id == userProject.Id && x.Record_State == "Active"))
-                .ToList();
-
-            var teamMembers = (await _unitOfWork.ProjectTeamMembers
-                .FindAsync(x => x.Project_Id == userProject.Id && x.Record_State == "Active"))
-                .ToList();
-
-            var projectTimelines = (await _unitOfWork.ProjectTimeline
-                .FindAsync(x => x.Project_Id == userProject.Id && x.Record_State == "Active"))
-                .ToList();
-
-            var developerRequests = (await _unitOfWork.ProjectDeveloperRequest
-                .FindAsync(x => x.Project_Id == userProject.Id && x.Record_State == "Active"))
-                .ToList();
-
-            // 5. Skills
-            var skills = await _unitOfWork.UserPostSkills
-                .FindAsync(x => x.Post_Details_Id == userProjectDetails.Id);
-
-            // 6. Prepare Model
-            var model = new ProjectModel
+            var projectRepo = _unitOfWork.Repository<UserProject>();
+            var project = new UserProject
             {
-                // UserPost
-                Post_Type = post.Post_Type,
-                Title = post.Title,
-                Description = post.Description,
-                Budget = post.Budget,
-                Post_Like = post.Post_Like,
-
-                // UserProject
-                Team_Name = userProject.Team_Name,
-                Focus_Area = userProjectDetails.Focus_Area,
-
-                // Post Details
-                Project_Duration = userProjectDetails?.Project_Duration ?? "",
-                Weekly_Commitment = userProjectDetails?.Weekly_Commitment ?? "",
-                Start_Date = userProjectDetails?.Start_Date,
-                End_Date = userProjectDetails?.End_Date,
-                Difficulty_Level = userProjectDetails?.Difficulty_Level ?? "",
-                Requirements = userProjectDetails?.Requirements ?? "",
-                Team_Info = userProjectDetails?.Team_Info ?? "",
-                Team_Size = userProjectDetails?.Team_Size ?? 0,
-                Author_Bio = userProjectDetails?.Author_Bio ?? "",
-                Author_Experience = userProjectDetails?.Author_Experience ?? "",
-                Author_Rating = userProjectDetails?.Author_Rating,
-                Project_Status = userProjectDetails?.Project_Status ?? "Active",
-
-                // Skills
-                Skills = skills.Select(s => new ProjectSkillsModel
-                {
-                    Skill_Name = s.Skill_Name,
-                    Skill_Type = s.Skill_Type
-                }).ToList(),
-
-                // Current Tasks
-                Current_Tasks = currentTasks.Select(t => new CurrentTaskModel
-                {
-                    Task_Name = t.Task_Name,
-                    Task_End_Date = t.Task_End_Date,
-                    Is_Completed = t.Is_Completed
-                }).ToList(),
-
-                // Team Members
-                Project_Team_Members = teamMembers.Select(m => new ProjectTeamMemberModel
-                {
-                    Member_Role = m.Member_Role,
-                    Is_Admin = m.Is_Admin
-                }).ToList(),
-
-                // Timeline
-                Project_TimeLine_List = projectTimelines.Select(tl => new ProjectTimeLineModel
-                {
-                    TimeLine_Title = tl.TimeLine_Title,
-                    Date_TimeFrame = tl.Date_TimeFrame,
-                    Timeline_Description = tl.Timeline_Description
-                }).ToList(),
-
-                // Progress calculation
-                Task_Count = currentTasks.Count,
-                Task_Completed = currentTasks.Count(x => x.Is_Completed),
-                Team_Member_Count = teamMembers.Count,
-                Overall_Progress = currentTasks.Count == 0
-                    ? 0
-                    : (currentTasks.Count(x => x.Is_Completed) * 100f / currentTasks.Count)
+                Id = Guid.NewGuid(),
+                Created_Timestamp = DateTime.UtcNow,
+                Record_State = "Active",
+                User_Status = "Offline"
             };
+            await projectRepo.AddAsync(project);
 
-            return model;
+            var descRepo = _unitOfWork.Repository<ProjectDescription>();
+            var description = new ProjectDescription
+            {
+                Id = Guid.NewGuid(),
+                Project_Id = project.Id,
+                Team_Name = string.Empty,
+                Project_Type = dto.Post_Type,
+                Project_Title = dto.Project_Title,
+                Description = dto.Project_Description,
+                Budget = dto.Budget,
+                Project_Timeline = dto.Project_Timeline,
+                Team_Size = dto.TeamSize,
+                Experience_Level = dto.Experience_Level,
+                Project_Status = "Active",
+                Start_Date = null,
+                End_Date = null,
+                Last_Edited_Timestamp = null,
+                Created_At = DateTime.UtcNow,
+                Record_State = "Active"
+            };
+            await descRepo.AddAsync(description);
+
+            var teamRepo = _unitOfWork.Repository<ProjectTeamMembers>();
+            var team = new ProjectTeamMembers
+            {
+                Id = Guid.NewGuid(),
+                Project_Id = project.Id,
+                User_Id = userId,
+                Member_Role = string.Empty,
+                Is_Admin = true,
+                Last_Edited_Timestamp = null,
+                Created_At = DateTime.UtcNow,
+                Record_State = "Active"
+            };
+            await teamRepo.AddAsync(team);
+
+            var timelineRepo = _unitOfWork.Repository<ProjectTaskTimeline>();
+            var timeline = new ProjectTaskTimeline
+            {
+                Id = Guid.NewGuid(),
+                Project_Id = project.Id,
+                User_Id = userId,
+                TimeLine_Title = string.Empty,
+                Date_TimeFrame = string.Empty,
+                Timeline_Description = string.Empty,
+                Last_Edited_Timestamp = null,
+                Created_At = DateTime.UtcNow,
+                Record_State = "Active"
+            };
+            await timelineRepo.AddAsync(timeline);
+
+            var devReqRepo = _unitOfWork.Repository<ProjectDeveloperRequest>();
+            var devReq = new ProjectDeveloperRequest
+            {
+                Id = Guid.NewGuid(),
+                Project_Id = project.Id,
+                User_Id = userId,
+                Project_Interested_Text = string.Empty,
+                Project_Experience_Text = string.Empty,
+                Active_Hour = 0,
+                Last_Edited_Timestamp = null,
+                Created_At = DateTime.UtcNow,
+                Record_State = "Active"
+            };
+            await devReqRepo.AddAsync(devReq);
+
+            var taskRepo = _unitOfWork.Repository<ProjectCurrentTasks>();
+            var task = new ProjectCurrentTasks
+            {
+                Id = Guid.NewGuid(),
+                Project_Id = project.Id,
+                User_Id = userId,
+                Task_Name = string.Empty,
+                Task_End_Date = null,
+                Is_Trashed = false,
+                Is_Completed = false,
+                Last_Edited_Timestamp = null,
+                Created_At = DateTime.UtcNow,
+                Record_State = "Active"
+            };
+            await taskRepo.AddAsync(task);
+            try
+            {
+                await _unitOfWork.SaveAllAsync();
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                throw new Exception("DATABASE ERROR: " + msg);
+            }
+            return "Project created successfully.";
         }
 
     }

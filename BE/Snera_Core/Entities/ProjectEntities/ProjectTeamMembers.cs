@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Snera_Core.Entities.UserEntities;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Snera_Core.Entities.ProjectEntities
 {

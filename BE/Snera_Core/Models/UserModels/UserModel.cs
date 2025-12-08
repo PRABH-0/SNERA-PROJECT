@@ -1,4 +1,5 @@
 ﻿using Snera_Core.Entities;
+using Snera_Core.Entities.UserEntities;
 
 namespace Snera_Core.Models.UserModels
 {

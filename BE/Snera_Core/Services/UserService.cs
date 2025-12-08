@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Snera_Core.Common;
 using Snera_Core.Entities;
+using Snera_Core.Entities.UserEntities;
 using Snera_Core.Models.UserModels;
 using Snera_Core.UnitOfWork;
 using System.Text.RegularExpressions;
@@ -34,6 +35,7 @@ namespace Snera_Core.Services
             if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
                 throw new Exception(CommonErrors.WeakPassword);
 
+
             var hashedPassword = _passwordHasher.HashPassword(dto.Email, dto.Password);
 
             var newUser = new User
@@ -49,21 +51,40 @@ namespace Snera_Core.Services
                 Created_Timestamp = DateTime.UtcNow
             };
 
-            await userRepo.AddAsync(newUser);
-
-            if (dto.UserSkills != null && dto.UserSkills.Any())
+            try
             {
-                var skillRepo = _unitOfWork.Repository<UserSkill>();
-                var userSkills = dto.UserSkills.Select(skill => new UserSkill
-                {
-                    Skill_Name = skill,
-                    UserId = newUser.Id
-                });
+                await userRepo.AddAsync(newUser);
 
-                await skillRepo.AddRangeAsync(userSkills);
+                // FIX #1 — Ensure list is valid
+                if (dto.UserSkills != null && dto.UserSkills.Any())
+                {
+                    var skillRepo = _unitOfWork.Repository<UserSkill>();
+                    var userSkillEntities = new List<UserSkill>();
+
+                    // FIX #2 — Correctly map each skill
+                    foreach (var skill in dto.UserSkills)
+                    {
+                        userSkillEntities.Add(new UserSkill
+                        {
+                            Id = Guid.NewGuid(),
+                            Skill_Name = skill,
+                            Skill_Type = string.Empty,
+                            UserId = newUser.Id
+                        });
+                    }
+
+                    await skillRepo.AddRangeAsync(userSkillEntities);
+                }
+
+                // FIX #3 — Save changes safely
+                await _unitOfWork.SaveAllAsync();
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.InnerException?.Message ?? ex.Message;
+                throw new Exception("DATABASE ERROR: " + msg);
             }
 
-            await _unitOfWork.SaveAllAsync();
             return newUser;
         }
 
