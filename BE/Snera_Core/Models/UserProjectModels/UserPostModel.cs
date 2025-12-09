@@ -13,7 +13,7 @@ namespace Snera_Core.Models.UserProjectModels
         public int TeamSize { get; set; } = 1;
         public string Experience_Level { get; set; } = string.Empty;
 
-        public List<UserSkillModel>? User_Skills { get; set; }
+        public List<ProjectSkillsModel>? User_Skills { get; set; }
 
 
     }

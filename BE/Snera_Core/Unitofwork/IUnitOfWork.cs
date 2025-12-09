@@ -19,6 +19,9 @@ namespace Snera_Core.UnitOfWork
         IRepository<ProjectDeveloperRequest> ProjectDeveloperRequest { get; }
         IRepository<ProjectTaskTimeline> ProjectTaskTimeline { get; }
         IRepository<ProjectTeamMembers> ProjectTeamMembers { get; }
+        IRepository<ProjectSkill> ProjectSkill { get; }
+        IRepository<ProjectLike> ProjectLike { get; }
+        IRepository<ProjectComment> ProjectComment { get; }
 
         IRepository<T> Repository<T>() where T : class;
 

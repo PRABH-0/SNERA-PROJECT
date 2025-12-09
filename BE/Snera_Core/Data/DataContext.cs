@@ -17,6 +17,10 @@ namespace Snera_Core.Data
         public DbSet<ProjectTeamMembers> ProjectTeamMembers { get; set; }
         public DbSet<ProjectTaskTimeline> ProjectTimelines { get; set; }
         public DbSet<UserProject> UserProject { get; set; }
+        public DbSet<ProjectSkill> ProjectSkill { get; set; }
+        public DbSet<ProjectLike> ProjectLike { get; set; }
+        public DbSet<ProjectComment> ProjectComment { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Snera_Core.Data;
 using Snera_Core.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -10,10 +11,10 @@ namespace Snera_Core.Repositories
 {
     public class Repository<T> : IRepository<T> where T : class
     {
-        private readonly DbContext _context;
+        private readonly DataContext _context;
         private readonly DbSet<T> _dbSet;
 
-        public Repository(DbContext context)
+        public Repository(DataContext context)
         {
             _context = context;
             _dbSet = context.Set<T>();
@@ -22,6 +23,11 @@ namespace Snera_Core.Repositories
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
+        }
+
+        public async Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.Where(predicate).ToListAsync();
         }
 
         public async Task<T?> GetByIdAsync(Guid id)
@@ -49,7 +55,7 @@ namespace Snera_Core.Repositories
             _dbSet.Remove(entity);
         }
 
-        // Predicate-based methods implementation
+
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.Where(predicate).ToListAsync();

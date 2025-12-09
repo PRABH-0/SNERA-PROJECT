@@ -1,6 +1,7 @@
 ﻿using Snera_Core.Common;
 using Snera_Core.Entities.ProjectEntities;
 using Snera_Core.Interface;
+using Snera_Core.Models.HelperModels;
 using Snera_Core.Models.UserProjectModels;
 using Snera_Core.UnitOfWork;
 
@@ -13,21 +14,96 @@ namespace Snera_Core.Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<ProjectModel> GetProject(string role, Guid postId)
+
+        public async Task<ProjectResponseModel> GetProject(string role, Guid projectId)
         {
-            return null;
+            var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
+            var description = await _unitOfWork.ProjectDescription.FirstOrDefaultAsync(d => d.Project_Id == projectId);
+            var teamMembers = await _unitOfWork.ProjectTeamMembers.GetAllAsync(t => t.Project_Id == projectId);
+            var tasks = await _unitOfWork.ProjectCurrentTasks.GetAllAsync(t => t.Project_Id == projectId);
+            var timelines = await _unitOfWork.ProjectTaskTimeline.GetAllAsync(t => t.Project_Id == projectId);
+            var devRequests = await _unitOfWork.ProjectDeveloperRequest.GetAllAsync(t => t.Project_Id == projectId);
+
+            return new ProjectResponseModel
+            {
+                Project = new
+                {
+                    project.Id,
+                    project.Created_Timestamp,
+                    project.Record_State,
+                    project.User_Status
+                },
+
+                ProjectDescription = new
+                {
+                    description.Id,
+                    description.Project_Id,
+                    description.Team_Name,
+                    description.Project_Type,
+                    description.Project_Title,
+                    description.Description,
+                    description.Budget,
+                    description.Project_Timeline,
+                    description.Team_Size,
+                    description.Experience_Level,
+                    description.Project_Status,
+                    description.Start_Date,
+                    description.End_Date,
+                    description.Last_Edited_Timestamp,
+                    description.Created_At
+                },
+
+                TeamMembers = teamMembers.Select(t => new
+                {
+                    t.Id,
+                    t.User_Id,
+                    t.Project_Id,
+                    t.Member_Role,
+                    t.Is_Admin,
+                    t.Created_At,
+                    t.Record_State
+                }),
+
+                CurrentTasks = tasks.Select(t => new
+                {
+                    t.Id,
+                    t.Task_Name,
+                    t.Task_End_Date,
+                    t.Is_Completed,
+                    t.Is_Trashed,
+                    t.User_Id,
+                    t.Project_Id,
+                    t.Created_At
+                }),
+
+                Timelines = timelines.Select(t => new
+                {
+                    t.Id,
+                    t.Project_Id,
+                    t.User_Id,
+                    t.TimeLine_Title,
+                    t.Date_TimeFrame,
+                    t.Timeline_Description,
+                    t.Created_At
+                }),
+
+                DeveloperRequests = devRequests.Select(r => new
+                {
+                    r.Id,
+                    r.Project_Id,
+                    r.User_Id,
+                    r.Project_Interested_Text,
+                    r.Project_Experience_Text,
+                    r.Active_Hour,
+                    r.Created_At
+                })
+            };
         }
+
         public async Task<string> CreateProject(UserPostModel dto)
         {
-            if (dto == null)
-                throw new Exception("Invalid project data received.");
-
-            if (dto.User_Id == null)
-                throw new Exception("User Id is missing for the project.");
-
             Guid userId = dto.User_Id.Value;
 
-            var projectRepo = _unitOfWork.Repository<UserProject>();
             var project = new UserProject
             {
                 Id = Guid.NewGuid(),
@@ -35,9 +111,8 @@ namespace Snera_Core.Services
                 Record_State = "Active",
                 User_Status = "Offline"
             };
-            await projectRepo.AddAsync(project);
+            await _unitOfWork.UserProject.AddAsync(project);
 
-            var descRepo = _unitOfWork.Repository<ProjectDescription>();
             var description = new ProjectDescription
             {
                 Id = Guid.NewGuid(),
@@ -51,83 +126,271 @@ namespace Snera_Core.Services
                 Team_Size = dto.TeamSize,
                 Experience_Level = dto.Experience_Level,
                 Project_Status = "Active",
-                Start_Date = null,
-                End_Date = null,
-                Last_Edited_Timestamp = null,
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
             };
-            await descRepo.AddAsync(description);
+            await _unitOfWork.ProjectDescription.AddAsync(description);
 
-            var teamRepo = _unitOfWork.Repository<ProjectTeamMembers>();
             var team = new ProjectTeamMembers
             {
                 Id = Guid.NewGuid(),
                 Project_Id = project.Id,
                 User_Id = userId,
-                Member_Role = string.Empty,
                 Is_Admin = true,
-                Last_Edited_Timestamp = null,
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
             };
-            await teamRepo.AddAsync(team);
+            await _unitOfWork.ProjectTeamMembers.AddAsync(team);
 
-            var timelineRepo = _unitOfWork.Repository<ProjectTaskTimeline>();
-            var timeline = new ProjectTaskTimeline
+            await _unitOfWork.ProjectTaskTimeline.AddAsync(new ProjectTaskTimeline
             {
                 Id = Guid.NewGuid(),
                 Project_Id = project.Id,
                 User_Id = userId,
-                TimeLine_Title = string.Empty,
-                Date_TimeFrame = string.Empty,
-                Timeline_Description = string.Empty,
-                Last_Edited_Timestamp = null,
+                TimeLine_Title = "",
+                Date_TimeFrame = "",
+                Timeline_Description = "",
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
-            };
-            await timelineRepo.AddAsync(timeline);
+            });
 
-            var devReqRepo = _unitOfWork.Repository<ProjectDeveloperRequest>();
-            var devReq = new ProjectDeveloperRequest
+            await _unitOfWork.ProjectDeveloperRequest.AddAsync(new ProjectDeveloperRequest
             {
                 Id = Guid.NewGuid(),
                 Project_Id = project.Id,
                 User_Id = userId,
-                Project_Interested_Text = string.Empty,
-                Project_Experience_Text = string.Empty,
+                Project_Interested_Text = "",
+                Project_Experience_Text = "",
                 Active_Hour = 0,
-                Last_Edited_Timestamp = null,
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
-            };
-            await devReqRepo.AddAsync(devReq);
+            });
 
-            var taskRepo = _unitOfWork.Repository<ProjectCurrentTasks>();
-            var task = new ProjectCurrentTasks
+            await _unitOfWork.ProjectCurrentTasks.AddAsync(new ProjectCurrentTasks
             {
                 Id = Guid.NewGuid(),
                 Project_Id = project.Id,
                 User_Id = userId,
-                Task_Name = string.Empty,
-                Task_End_Date = null,
-                Is_Trashed = false,
+                Task_Name = "",
                 Is_Completed = false,
-                Last_Edited_Timestamp = null,
+                Is_Trashed = false,
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
-            };
-            await taskRepo.AddAsync(task);
-            try
+            });
+
+            if (dto.User_Skills != null)
             {
-                await _unitOfWork.SaveAllAsync();
+                foreach (var s in dto.User_Skills)
+                {
+                    await _unitOfWork.ProjectSkill.AddAsync(new ProjectSkill
+                    {
+                        Id = Guid.NewGuid(),
+                        Project_Id = project.Id,
+                        Skill_Name = s.Skill_Name,
+                        Skill_Type = s.Skill_Type
+                    });
+                }
             }
-            catch (Exception ex)
-            {
-                var msg = ex.InnerException?.Message ?? ex.Message;
-                throw new Exception("DATABASE ERROR: " + msg);
-            }
+
+            await _unitOfWork.SaveAllAsync();
             return "Project created successfully.";
+        }
+
+        public async Task<GetProjectListResponse> GetAllPosts(FilterModel request)
+        {
+            if (request.PageNumber <= 0) request.PageNumber = 1;
+            if (request.PageSize <= 0) request.PageSize = 10;
+
+            var descriptions = await _unitOfWork.ProjectDescription
+                .FindAsync(d => d.Record_State == "Active");
+
+            // ------------------ SEARCH FILTER ------------------
+            if (!string.IsNullOrWhiteSpace(request.Search))
+            {
+                descriptions = descriptions.Where(d =>
+                    d.Project_Title.Contains(request.Search, StringComparison.OrdinalIgnoreCase) ||
+                    d.Description.Contains(request.Search, StringComparison.OrdinalIgnoreCase) ||
+                    d.Project_Type.Contains(request.Search, StringComparison.OrdinalIgnoreCase)
+                );
+            }
+
+            // ------------------ TYPE FILTER ------------------
+            if (!string.IsNullOrWhiteSpace(request.Type))
+            {
+                descriptions = descriptions.Where(d =>
+                    d.Project_Type.Equals(request.Type, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // ------------------ STATE FILTER ------------------
+            if (!string.IsNullOrWhiteSpace(request.State))
+            {
+                descriptions = descriptions.Where(d =>
+                    d.Project_Status.Equals(request.State, StringComparison.OrdinalIgnoreCase));
+            }
+
+            // ------------------ SORTING ------------------
+            descriptions = request.SortBy?.ToLower() switch
+            {
+                "title" => request.IsDescending ? descriptions.OrderByDescending(d => d.Project_Title)
+                                                : descriptions.OrderBy(d => d.Project_Title),
+
+                "type" => request.IsDescending ? descriptions.OrderByDescending(d => d.Project_Type)
+                                               : descriptions.OrderBy(d => d.Project_Type),
+
+                _ => request.IsDescending ? descriptions.OrderByDescending(d => d.Created_At)
+                                          : descriptions.OrderBy(d => d.Created_At)
+            };
+
+            int totalCount = descriptions.Count();
+
+            var paged = descriptions
+                .Skip((request.PageNumber - 1) * request.PageSize)
+                .Take(request.PageSize)
+                .ToList();
+
+            var result = new List<object>();
+
+            foreach (var desc in paged)
+            {
+                Guid projectId = desc.Project_Id;
+
+                // ------------------ SKILLS ------------------
+                var skills = await _unitOfWork.ProjectSkill.FindAsync(s => s.Project_Id == projectId);
+
+                var skillsHave = skills.Where(s => s.Skill_Type == "Have")
+                                       .Select(s => s.Skill_Name)
+                                       .ToList();
+
+                var skillsNeed = skills.Where(s => s.Skill_Type == "Need")
+                                       .Select(s => s.Skill_Name)
+                                       .ToList();
+
+                // ------------------ LIKES & ISLIKED ------------------
+                int likes = await _unitOfWork.ProjectLike.CountAsync(l => l.Project_Id == projectId);
+
+                bool isLiked = false;
+                if (request.User_Id != null)
+                {
+                    var liked = await _unitOfWork.ProjectLike
+                        .FirstOrDefaultAsync(l => l.Project_Id == projectId && l.User_Id == request.User_Id);
+
+                    isLiked = liked != null;
+                }
+
+                // ------------------ COMMENTS ------------------
+                var commentList = await _unitOfWork.ProjectComment
+                    .FindAsync(c => c.Project_Id == projectId);
+
+                var commentArray = new List<object>();
+
+                foreach (var c in commentList)
+                {
+                    var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == c.User_Id);
+
+                    commentArray.Add(new
+                    {
+                        Comment_Id = c.Id,
+                        User_Id = c.User_Id,
+                        User_Name = user?.FullName ?? "Unknown",
+                        Comment_Text = c.Comment_Text,
+                        Created_At = c.Created_At
+                    });
+                }
+
+                // ------------------ FINAL OBJECT ------------------
+                result.Add(new
+                {
+                    Project_Id = desc.Project_Id,
+                    ProjectTitle = desc.Project_Title,
+                    ProjectType = desc.Project_Type,
+                    Description = desc.Description,
+                    Budget = desc.Budget,
+                    Timeline = desc.Project_Timeline,
+                    TeamSize = desc.Team_Size,
+                    ExperienceLevel = desc.Experience_Level,
+                    CreatedAt = desc.Created_At,
+
+                    SkillsHave = skillsHave,
+                    SkillsNeed = skillsNeed,
+
+                    LikeCount = likes,
+                    isLiked = isLiked,
+
+                    CommentCount = commentList.Count(),
+                    Comments = commentArray
+                });
+            }
+
+            return new GetProjectListResponse
+            {
+                TotalCount = totalCount,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize),
+                PageNumber = request.PageNumber,
+                PageSize = request.PageSize,
+                Projects = result
+            };
+        }
+
+
+        public async Task<string> LikeProjectPost(Guid userId, Guid projectId)
+        {
+            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                return "Invalid user. User does not exist.";
+
+            var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
+            if (project == null)
+                return "Invalid project. Project does not exist.";
+
+            var existing = await _unitOfWork.ProjectLike
+                .FirstOrDefaultAsync(l => l.Project_Id == projectId && l.User_Id == userId);
+
+            if (existing == null)
+            {
+                await _unitOfWork.ProjectLike.AddAsync(new ProjectLike
+                {
+                    Id = Guid.NewGuid(),
+                    Project_Id = projectId,
+                    User_Id = userId
+                });
+
+                await _unitOfWork.SaveAllAsync();
+                return "Liked";
+            }
+            else
+            {
+                _unitOfWork.ProjectLike.Delete(existing);
+                await _unitOfWork.SaveAllAsync();
+                return "Disliked";
+            }
+        }
+
+
+        public async Task<string> CommentOnProject(Guid userId, Guid projectId, string comment)
+        {
+            // -------------------- VALIDATION --------------------
+            if (string.IsNullOrWhiteSpace(comment))
+                return "Comment cannot be empty.";
+
+            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == userId);
+            if (user == null)
+                return "Invalid user. User does not exist.";
+            var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
+            if (project == null)
+                return "Invalid project. Project does not exist.";
+
+            await _unitOfWork.ProjectComment.AddAsync(new ProjectComment
+            {
+                Id = Guid.NewGuid(),
+                Project_Id = projectId,
+                User_Id = userId,
+                Comment_Text = comment.Trim(),
+                Created_At = DateTime.UtcNow
+            });
+
+            await _unitOfWork.SaveAllAsync();
+
+            return "Comment added";
         }
 
     }

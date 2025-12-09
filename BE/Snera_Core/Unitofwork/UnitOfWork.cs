@@ -5,6 +5,9 @@ using Snera_Core.Entities.UserEntities;
 using Snera_Core.Interfaces;
 using Snera_Core.Repositories;
 using Snera_Core.UnitOfWork;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class UnitOfWork : IUnitOfWork
 {
@@ -24,9 +27,6 @@ public class UnitOfWork : IUnitOfWork
         return (IRepository<T>)_repositories[typeof(T)];
     }
 
-    // ----------------------
-    // USER REPOSITORIES
-    // ----------------------
 
     private IRepository<User>? _userRepository;
     public IRepository<User> Users
@@ -49,11 +49,6 @@ public class UnitOfWork : IUnitOfWork
             return _userSkillRepository;
         }
     }
-
-    // ----------------------
-    // PROJECT REPOSITORIES
-    // ----------------------
-
     private IRepository<UserProject>? _userProjectRepository;
     public IRepository<UserProject> UserProject
     {
@@ -119,8 +114,38 @@ public class UnitOfWork : IUnitOfWork
             return _projectDeveloperRequestRepository;
         }
     }
+    private IRepository<ProjectSkill>? _projectSkillRepository;
+    public IRepository<ProjectSkill> ProjectSkill
+    {
+        get
+        {
+            if (_projectSkillRepository == null)
+                _projectSkillRepository = Repository<ProjectSkill>();
+            return _projectSkillRepository;
+        }
+    }
 
-    // ----------------------
+    private IRepository<ProjectLike>? _projectLikeRepository;
+    public IRepository<ProjectLike> ProjectLike
+    {
+        get
+        {
+            if (_projectLikeRepository == null)
+                _projectLikeRepository = Repository<ProjectLike>();
+            return _projectLikeRepository;
+        }
+    }
+
+    private IRepository<ProjectComment>? _projectCommentRepository;
+    public IRepository<ProjectComment> ProjectComment
+    {
+        get
+        {
+            if (_projectCommentRepository == null)
+                _projectCommentRepository = Repository<ProjectComment>();
+            return _projectCommentRepository;
+        }
+    }
 
     public async Task<int> SaveAllAsync()
     {
