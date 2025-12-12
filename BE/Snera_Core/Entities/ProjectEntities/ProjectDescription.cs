@@ -14,6 +14,9 @@ namespace Snera_Core.Entities.ProjectEntities
         public string Description { get; set; } = string.Empty;
         public string Budget {  get; set; } = string.Empty;
         public string Project_Timeline {  get; set; } = string.Empty;
+        public string Difficulty_Level {  get; set; } = string.Empty;
+        public string Project_Visibility {  get; set; } = string.Empty;
+
         public int Team_Size { get; set; } = 1;
         public string Experience_Level { get; set; } = string.Empty;
         public string Project_Status {  get; set; } = string.Empty;//Active , On Hold , Completed 

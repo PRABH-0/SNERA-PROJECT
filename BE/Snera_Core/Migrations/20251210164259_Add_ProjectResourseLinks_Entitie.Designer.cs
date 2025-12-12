@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Snera_Core.Data;
 
@@ -11,9 +12,11 @@ using Snera_Core.Data;
 namespace Snera_Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20251210164259_Add_ProjectResourseLinks_Entitie")]
+    partial class Add_ProjectResourseLinks_Entitie
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -228,6 +231,31 @@ namespace Snera_Core.Migrations
                     b.ToTable("ProjectLike");
                 });
 
+            modelBuilder.Entity("Snera_Core.Entities.ProjectEntities.ProjectResourseLinks", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Link")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("Project_Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Record_State")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("created_At")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Project_Id");
+
+                    b.ToTable("ProjectResourseLinks");
+                });
+
             modelBuilder.Entity("Snera_Core.Entities.ProjectEntities.ProjectSkill", b =>
                 {
                     b.Property<Guid>("Id")
@@ -331,32 +359,6 @@ namespace Snera_Core.Migrations
                     b.HasIndex("User_Id");
 
                     b.ToTable("ProjectTeamMembers");
-                });
-
-            modelBuilder.Entity("Snera_Core.Entities.ProjectEntities.ResourseLinks", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("Created_At")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Link")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("Project_Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("User_Id")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Project_Id");
-
-                    b.ToTable("ResourseLinks");
                 });
 
             modelBuilder.Entity("Snera_Core.Entities.ProjectEntities.UserProject", b =>
@@ -530,6 +532,17 @@ namespace Snera_Core.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Snera_Core.Entities.ProjectEntities.ProjectResourseLinks", b =>
+                {
+                    b.HasOne("Snera_Core.Entities.ProjectEntities.UserProject", "Project")
+                        .WithMany()
+                        .HasForeignKey("Project_Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
             modelBuilder.Entity("Snera_Core.Entities.ProjectEntities.ProjectSkill", b =>
                 {
                     b.HasOne("Snera_Core.Entities.ProjectEntities.UserProject", "Project")
@@ -579,17 +592,6 @@ namespace Snera_Core.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Snera_Core.Entities.ProjectEntities.ResourseLinks", b =>
-                {
-                    b.HasOne("Snera_Core.Entities.ProjectEntities.UserProject", "Project")
-                        .WithMany("ResourseLinks")
-                        .HasForeignKey("Project_Id")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Project");
-                });
-
             modelBuilder.Entity("Snera_Core.Entities.UserEntities.UserSkill", b =>
                 {
                     b.HasOne("Snera_Core.Entities.UserEntities.User", null)
@@ -610,8 +612,6 @@ namespace Snera_Core.Migrations
                     b.Navigation("ProjectTeamMembers");
 
                     b.Navigation("ProjectTimelines");
-
-                    b.Navigation("ResourseLinks");
                 });
 
             modelBuilder.Entity("Snera_Core.Entities.UserEntities.User", b =>

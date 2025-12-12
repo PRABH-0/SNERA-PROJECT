@@ -2,11 +2,13 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
+using Snera_Core.Entities.ProjectEntities;
 using Snera_Core.Entities.UserEntities;
 using Snera_Core.Interface;
 using Snera_Core.Models.HelperModels;
 using Snera_Core.Models.UserProjectModels;
 using Snera_Core.Services;
+using Snera_Core.UnitOfWork;
 using System.Data;
 
 namespace Snera_Core.Controllers
@@ -16,9 +18,11 @@ namespace Snera_Core.Controllers
     public class ProjectController : ControllerBase
     {
         private readonly IProjectService _projectService;
-        public ProjectController(IProjectService projectService)
+        private readonly IUnitOfWork _unitOfWork;
+        public ProjectController(IProjectService projectService, IUnitOfWork unitOfWork)
         {
             _projectService = projectService;
+            _unitOfWork = unitOfWork;
         }
         [HttpPost("CreatePost")]
         [Authorize]

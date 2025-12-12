@@ -24,6 +24,7 @@ namespace Snera_Core.Services
             var timelines = await _unitOfWork.ProjectTaskTimeline.GetAllAsync(t => t.Project_Id == projectId);
             var devRequests = await _unitOfWork.ProjectDeveloperRequest.GetAllAsync(t => t.Project_Id == projectId);
 
+
             return new ProjectResponseModel
             {
                 Project = new
@@ -96,7 +97,8 @@ namespace Snera_Core.Services
                     r.Project_Experience_Text,
                     r.Active_Hour,
                     r.Created_At
-                })
+                }),
+
             };
         }
 
@@ -117,63 +119,37 @@ namespace Snera_Core.Services
             {
                 Id = Guid.NewGuid(),
                 Project_Id = project.Id,
-                Team_Name = string.Empty,
-                Project_Type = dto.Post_Type,
+
+                Team_Name = dto.Team_Name,
+                Project_Type = dto.Project_Type,
                 Project_Title = dto.Project_Title,
                 Description = dto.Project_Description,
                 Budget = dto.Budget,
+
                 Project_Timeline = dto.Project_Timeline,
-                Team_Size = dto.TeamSize,
+                Difficulty_Level = dto.Difficulty_Level,
+                Project_Visibility = dto.Project_Visibility,
+                Project_Status = dto.Project_Status,
+
+                Team_Size = dto.Team_Size,
                 Experience_Level = dto.Experience_Level,
-                Project_Status = "Active",
+
+                Start_Date = dto.Start_Date,
+                End_Date = dto.End_Date,
+
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
             };
+
             await _unitOfWork.ProjectDescription.AddAsync(description);
 
-            var team = new ProjectTeamMembers
+            await _unitOfWork.ProjectTeamMembers.AddAsync(new ProjectTeamMembers
             {
                 Id = Guid.NewGuid(),
                 Project_Id = project.Id,
                 User_Id = userId,
+                Member_Role = "Admin",
                 Is_Admin = true,
-                Created_At = DateTime.UtcNow,
-                Record_State = "Active"
-            };
-            await _unitOfWork.ProjectTeamMembers.AddAsync(team);
-
-            await _unitOfWork.ProjectTaskTimeline.AddAsync(new ProjectTaskTimeline
-            {
-                Id = Guid.NewGuid(),
-                Project_Id = project.Id,
-                User_Id = userId,
-                TimeLine_Title = "",
-                Date_TimeFrame = "",
-                Timeline_Description = "",
-                Created_At = DateTime.UtcNow,
-                Record_State = "Active"
-            });
-
-            await _unitOfWork.ProjectDeveloperRequest.AddAsync(new ProjectDeveloperRequest
-            {
-                Id = Guid.NewGuid(),
-                Project_Id = project.Id,
-                User_Id = userId,
-                Project_Interested_Text = "",
-                Project_Experience_Text = "",
-                Active_Hour = 0,
-                Created_At = DateTime.UtcNow,
-                Record_State = "Active"
-            });
-
-            await _unitOfWork.ProjectCurrentTasks.AddAsync(new ProjectCurrentTasks
-            {
-                Id = Guid.NewGuid(),
-                Project_Id = project.Id,
-                User_Id = userId,
-                Task_Name = "",
-                Is_Completed = false,
-                Is_Trashed = false,
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
             });
@@ -191,6 +167,19 @@ namespace Snera_Core.Services
                     });
                 }
             }
+            if (dto.Link != null)
+            {
+                foreach (var l in dto.Link)
+                {
+                    await _unitOfWork.ResourseLinks.AddAsync(new ResourseLinks
+                    {
+                        Id = Guid.NewGuid(),
+                        Project_Id = project.Id,
+                        Link = l
+                    });
+                }
+            }
+
 
             await _unitOfWork.SaveAllAsync();
             return "Project created successfully.";
@@ -198,107 +187,82 @@ namespace Snera_Core.Services
 
         public async Task<GetProjectListResponse> GetAllPosts(FilterModel request)
         {
+            // Fix pagination values
             if (request.PageNumber <= 0) request.PageNumber = 1;
             if (request.PageSize <= 0) request.PageSize = 10;
 
+            // 1️⃣ Get Active project descriptions
             var descriptions = await _unitOfWork.ProjectDescription
                 .FindAsync(d => d.Record_State == "Active");
 
-            // ------------------ SEARCH FILTER ------------------
-            if (!string.IsNullOrWhiteSpace(request.Search))
-            {
-                descriptions = descriptions.Where(d =>
-                    d.Project_Title.Contains(request.Search, StringComparison.OrdinalIgnoreCase) ||
-                    d.Description.Contains(request.Search, StringComparison.OrdinalIgnoreCase) ||
-                    d.Project_Type.Contains(request.Search, StringComparison.OrdinalIgnoreCase)
-                );
-            }
-
-            // ------------------ TYPE FILTER ------------------
-            if (!string.IsNullOrWhiteSpace(request.Type))
-            {
-                descriptions = descriptions.Where(d =>
-                    d.Project_Type.Equals(request.Type, StringComparison.OrdinalIgnoreCase));
-            }
-
-            // ------------------ STATE FILTER ------------------
-            if (!string.IsNullOrWhiteSpace(request.State))
-            {
-                descriptions = descriptions.Where(d =>
-                    d.Project_Status.Equals(request.State, StringComparison.OrdinalIgnoreCase));
-            }
-
-            // ------------------ SORTING ------------------
-            descriptions = request.SortBy?.ToLower() switch
-            {
-                "title" => request.IsDescending ? descriptions.OrderByDescending(d => d.Project_Title)
-                                                : descriptions.OrderBy(d => d.Project_Title),
-
-                "type" => request.IsDescending ? descriptions.OrderByDescending(d => d.Project_Type)
-                                               : descriptions.OrderBy(d => d.Project_Type),
-
-                _ => request.IsDescending ? descriptions.OrderByDescending(d => d.Created_At)
-                                          : descriptions.OrderBy(d => d.Created_At)
-            };
+            // 2️⃣ Sorting
+            descriptions = request.IsDescending
+                ? descriptions.OrderByDescending(d => d.Created_At)
+                : descriptions.OrderBy(d => d.Created_At);
 
             int totalCount = descriptions.Count();
 
+            // 3️⃣ Pagination
             var paged = descriptions
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
 
-            var result = new List<object>();
+            if (!paged.Any())
+            {
+                return new GetProjectListResponse
+                {
+                    TotalCount = 0,
+                    TotalPages = 0,
+                    PageNumber = request.PageNumber,
+                    PageSize = request.PageSize,
+                    Projects = new List<ProjectListItemDto>()
+                };
+            }
+
+            // Extract project IDs (for batch queries)
+            var projectIds = paged.Select(p => p.Project_Id).ToList();
+
+            // 4️⃣ Batch queries
+            var allSkills = await _unitOfWork.ProjectSkill.FindAsync(s => projectIds.Contains(s.Project_Id));
+            var allLikes = await _unitOfWork.ProjectLike.FindAsync(l => projectIds.Contains(l.Project_Id));
+            var allComments = await _unitOfWork.ProjectComment.FindAsync(c => projectIds.Contains(c.Project_Id));
+            var allLinks = await _unitOfWork.ResourseLinks.FindAsync(r => projectIds.Contains(r.Project_Id));
+
+            // Load comment users
+            var commentUserIds = allComments.Select(c => c.User_Id).Distinct().ToList();
+            var commentUsers = await _unitOfWork.Users.FindAsync(u => commentUserIds.Contains(u.Id));
+
+            // Final list
+            var result = new List<ProjectListItemDto>();
 
             foreach (var desc in paged)
             {
-                Guid projectId = desc.Project_Id;
+                var projectId = desc.Project_Id;
 
-                // ------------------ SKILLS ------------------
-                var skills = await _unitOfWork.ProjectSkill.FindAsync(s => s.Project_Id == projectId);
+                // Filter data for this project
+                var skills = allSkills.Where(s => s.Project_Id == projectId);
+                var likes = allLikes.Where(l => l.Project_Id == projectId);
+                var comments = allComments.Where(c => c.Project_Id == projectId);
+                var links = allLinks.Where(r => r.Project_Id == projectId);
 
-                var skillsHave = skills.Where(s => s.Skill_Type == "Have")
-                                       .Select(s => s.Skill_Name)
-                                       .ToList();
-
-                var skillsNeed = skills.Where(s => s.Skill_Type == "Need")
-                                       .Select(s => s.Skill_Name)
-                                       .ToList();
-
-                // ------------------ LIKES & ISLIKED ------------------
-                int likes = await _unitOfWork.ProjectLike.CountAsync(l => l.Project_Id == projectId);
-
-                bool isLiked = false;
-                if (request.User_Id != null)
+                // Format comments
+                var formattedComments = comments.Select(c =>
                 {
-                    var liked = await _unitOfWork.ProjectLike
-                        .FirstOrDefaultAsync(l => l.Project_Id == projectId && l.User_Id == request.User_Id);
+                    var user = commentUsers.FirstOrDefault(u => u.Id == c.User_Id);
 
-                    isLiked = liked != null;
-                }
-
-                // ------------------ COMMENTS ------------------
-                var commentList = await _unitOfWork.ProjectComment
-                    .FindAsync(c => c.Project_Id == projectId);
-
-                var commentArray = new List<object>();
-
-                foreach (var c in commentList)
-                {
-                    var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == c.User_Id);
-
-                    commentArray.Add(new
+                    return new ProjectCommentModel
                     {
                         Comment_Id = c.Id,
                         User_Id = c.User_Id,
                         User_Name = user?.FullName ?? "Unknown",
                         Comment_Text = c.Comment_Text,
                         Created_At = c.Created_At
-                    });
-                }
+                    };
+                }).ToList();
 
-                // ------------------ FINAL OBJECT ------------------
-                result.Add(new
+                // Add final project card
+                result.Add(new ProjectListItemDto
                 {
                     Project_Id = desc.Project_Id,
                     ProjectTitle = desc.Project_Title,
@@ -310,14 +274,20 @@ namespace Snera_Core.Services
                     ExperienceLevel = desc.Experience_Level,
                     CreatedAt = desc.Created_At,
 
-                    SkillsHave = skillsHave,
-                    SkillsNeed = skillsNeed,
+                    // skills
+                    SkillsHave = skills.Where(s => s.Skill_Type == "Have").Select(s => s.Skill_Name).ToList(),
+                    SkillsNeed = skills.Where(s => s.Skill_Type == "Need").Select(s => s.Skill_Name).ToList(),
 
-                    LikeCount = likes,
-                    isLiked = isLiked,
+                    // likes
+                    LikeCount = likes.Count(),
+                    IsLiked = request.User_Id != null && likes.Any(l => l.User_Id == request.User_Id),
 
-                    CommentCount = commentList.Count(),
-                    Comments = commentArray
+                    // comments
+                    CommentCount = comments.Count(),
+                    Comments = formattedComments,
+
+                    // resource links
+                    ResourceLinks = links.Select(l => l.Link).ToList()
                 });
             }
 
@@ -330,7 +300,6 @@ namespace Snera_Core.Services
                 Projects = result
             };
         }
-
 
         public async Task<string> LikeProjectPost(Guid userId, Guid projectId)
         {
@@ -365,16 +334,15 @@ namespace Snera_Core.Services
             }
         }
 
-
         public async Task<string> CommentOnProject(Guid userId, Guid projectId, string comment)
         {
-            // -------------------- VALIDATION --------------------
             if (string.IsNullOrWhiteSpace(comment))
                 return "Comment cannot be empty.";
 
             var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null)
                 return "Invalid user. User does not exist.";
+
             var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
             if (project == null)
                 return "Invalid project. Project does not exist.";
@@ -392,6 +360,5 @@ namespace Snera_Core.Services
 
             return "Comment added";
         }
-
     }
 }

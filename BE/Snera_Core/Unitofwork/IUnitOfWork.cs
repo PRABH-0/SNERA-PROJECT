@@ -22,6 +22,7 @@ namespace Snera_Core.UnitOfWork
         IRepository<ProjectSkill> ProjectSkill { get; }
         IRepository<ProjectLike> ProjectLike { get; }
         IRepository<ProjectComment> ProjectComment { get; }
+        IRepository<ResourseLinks> ResourseLinks { get; }
 
         IRepository<T> Repository<T>() where T : class;
 

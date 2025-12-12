@@ -9,6 +9,7 @@
         public IEnumerable<object> CurrentTasks { get; set; }
         public IEnumerable<object> Timelines { get; set; }
         public IEnumerable<object> DeveloperRequests { get; set; }
+        public IEnumerable<object> ResourceLinks { get; set; }
     }
 
 }

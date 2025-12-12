@@ -146,6 +146,18 @@ public class UnitOfWork : IUnitOfWork
             return _projectCommentRepository;
         }
     }
+    private IRepository<ResourseLinks>? _resourseLnks;
+
+    public IRepository<ResourseLinks> ResourseLinks
+    {
+        get
+        {
+            if (_resourseLnks == null)
+                _resourseLnks = Repository<ResourseLinks>();
+            return _resourseLnks;
+        }
+    }
+
 
     public async Task<int> SaveAllAsync()
     {
