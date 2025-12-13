@@ -827,7 +827,7 @@ const CreatePost: React.FC = () => {
               </div>
 
               {/* Details Grid */}
-              <div className="mt-5 grid gap-4 rounded-lg bg-[var(--card-bg)] shadow-[--card-shadow] p-5 text-xs text-[var(--text-primary) md:grid-cols-3">
+              <div className="mt-5 grid gap-4 rounded-lg bg-[var(--card-bg)] shadow-[--card-shadow] border border-[var(--post-border)]  p-5 text-xs text-[var(--text-primary) md:grid-cols-3">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)">
                     Team Size
