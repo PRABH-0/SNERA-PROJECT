@@ -14,19 +14,57 @@ namespace Snera_Core.Services
         {
             _unitOfWork = unitOfWork;
         }
+        public async Task<List<ProjectTaskResponseModel>> GetAllCurrentTasks(Guid projectId)
+        {
+            var tasks = await _unitOfWork.ProjectCurrentTasks
+                .FindAsync(t => t.Project_Id == projectId);
+
+            var result = tasks
+                .OrderByDescending(t => t.Created_At)
+                .Select(t => new ProjectTaskResponseModel
+                {
+                    Id = t.Id,
+                    Task_Name = t.Task_Name,
+                    Task_End_Date = t.Task_End_Date,
+                    Is_Completed = t.Is_Completed,
+                    Is_Trashed = t.Is_Trashed,
+                    User_Id = t.User_Id,
+                    User_Name = t.User?.FullName ?? "Unknown", 
+                    Project_Id = t.Project_Id,
+                    Created_At = t.Created_At
+                })
+                .ToList();
+
+            return result;
+        }
 
         public async Task<ProjectResponseModel> GetProject(string role, Guid projectId)
         {
-            var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
-            var description = await _unitOfWork.ProjectDescription.FirstOrDefaultAsync(d => d.Project_Id == projectId);
-            var teamMembers = await _unitOfWork.ProjectTeamMembers.GetAllAsync(t => t.Project_Id == projectId);
-            var tasks = await _unitOfWork.ProjectCurrentTasks.GetAllAsync(t => t.Project_Id == projectId);
-            var timelines = await _unitOfWork.ProjectTaskTimeline.GetAllAsync(t => t.Project_Id == projectId);
-            var devRequests = await _unitOfWork.ProjectDeveloperRequest.GetAllAsync(t => t.Project_Id == projectId);
+            var project = await _unitOfWork.UserProject
+                .FirstOrDefaultAsync(p => p.Id == projectId);
 
+            var description = await _unitOfWork.ProjectDescription
+                .FirstOrDefaultAsync(d => d.Project_Id == projectId);
+
+            var teamMembers = await _unitOfWork.ProjectTeamMembers
+                .GetAllAsync(t => t.Project_Id == projectId);
+
+            var tasks = await _unitOfWork.ProjectCurrentTasks
+                .GetAllAsync(t => t.Project_Id == projectId);
+
+            var timelines = await _unitOfWork.ProjectTaskTimeline
+                .GetAllAsync(t => t.Project_Id == projectId);
+
+            var devRequests = await _unitOfWork.ProjectDeveloperRequest
+                .GetAllAsync(t => t.Project_Id == projectId);
+
+            var resourceLinks = await _unitOfWork.ResourseLinks
+                .GetAllAsync(r => r.Project_Id == projectId);
 
             return new ProjectResponseModel
             {
+                isEditable = role == "Admin",
+
                 Project = new
                 {
                     project.Id,
@@ -45,6 +83,7 @@ namespace Snera_Core.Services
                     description.Description,
                     description.Budget,
                     description.Project_Timeline,
+                    description.Project_Visibility,
                     description.Team_Size,
                     description.Experience_Level,
                     description.Project_Status,
@@ -99,6 +138,13 @@ namespace Snera_Core.Services
                     r.Created_At
                 }),
 
+                ResourceLinks = resourceLinks.Select(r => new
+                {
+                    r.Id,
+                    r.Project_Id,
+                    r.Link,
+                    r.Created_At
+                })
             };
         }
 
@@ -331,6 +377,111 @@ namespace Snera_Core.Services
                 await _unitOfWork.SaveAllAsync();
                 return "Disliked";
             }
+        }
+        public async Task<string> AddResourceLink(CreateResourceLinkModel dto)
+        {
+            var project = await _unitOfWork.UserProject
+                .FirstOrDefaultAsync(p => p.Id == dto.Project_Id);
+
+            if (project == null)
+                return "Project not found";
+
+            var link = new ResourseLinks
+            {
+                Id = Guid.NewGuid(),
+                User_Id = dto.User_Id,
+                Project_Id = dto.Project_Id,
+                Link = dto.Link,
+                Created_At = DateTime.UtcNow
+            };
+
+            await _unitOfWork.ResourseLinks.AddAsync(link);
+            await _unitOfWork.SaveAllAsync();
+
+            return "Resource link added successfully";
+        }
+        public async Task<string> UpdateProjectDescription(UpdateProjectDescriptionModel model)
+        {
+            var desc = await _unitOfWork.ProjectDescription
+                .FirstOrDefaultAsync(d => d.Project_Id == model.ProjectId);
+
+            if (desc == null)
+                return "Project description not found";
+
+            desc.Team_Name = model.Team_Name;
+            desc.Project_Type = model.Project_Type;
+            desc.Project_Title = model.Project_Title;
+            desc.Description = model.Description;
+            desc.Budget = model.Budget;
+
+            desc.Project_Timeline = model.Project_Timeline;
+            desc.Project_Visibility = model.Project_Visibility;
+            desc.Project_Status = model.Project_Status;
+
+            desc.Team_Size = model.Team_Size;
+            desc.Experience_Level = model.Experience_Level;
+
+            desc.Start_Date = model.Start_Date;
+            desc.End_Date = model.End_Date;
+
+            desc.Last_Edited_Timestamp = DateTime.UtcNow;
+
+            await _unitOfWork.SaveAllAsync();
+            return "Project description updated successfully";
+        }
+
+        public async Task<string> AddProjectTimeline(CreateTimelineModel dto)
+        {
+            var project = await _unitOfWork.UserProject
+                .FirstOrDefaultAsync(p => p.Id == dto.Project_Id);
+
+            if (project == null)
+                return "Project not found";
+
+            var timeline = new ProjectTaskTimeline
+            {
+                Id = Guid.NewGuid(),
+                User_Id = dto.User_Id,
+                Project_Id = dto.Project_Id,
+                TimeLine_Title = dto.TimeLine_Title,
+                Date_TimeFrame = dto.Date_TimeFrame,
+                Timeline_Description = dto.Timeline_Description,
+                Created_At = DateTime.UtcNow,
+                Record_State = "Active"
+            };
+
+            await _unitOfWork.ProjectTaskTimeline.AddAsync(timeline);
+            await _unitOfWork.SaveAllAsync();
+
+            return "Timeline item added successfully";
+        }
+
+        public async Task<string> AddCurrentTask(CreateTaskModel dto)
+        {
+            var project = await _unitOfWork.UserProject
+                .FirstOrDefaultAsync(p => p.Id == dto.Project_Id);
+
+            if (project == null)
+                return "Project not found";
+
+            var task = new ProjectCurrentTasks
+            {
+                Id = Guid.NewGuid(),
+                User_Id = dto.User_Id,
+                Project_Id = dto.Project_Id,
+                Task_Name = dto.Task_Name,
+                Task_End_Date = dto.Task_End_Date,
+                Is_Completed = false,
+                Is_Trashed = false,
+                Created_At = DateTime.UtcNow,
+                Record_State = "Active"
+            };
+
+            await _unitOfWork.ProjectCurrentTasks.AddAsync(task);
+            await _unitOfWork.SaveAllAsync();
+            await _unitOfWork.SaveAllAsync();
+
+            return "Task added successfully";
         }
 
         public async Task<string> CommentOnProject(Guid userId, Guid projectId, string comment)

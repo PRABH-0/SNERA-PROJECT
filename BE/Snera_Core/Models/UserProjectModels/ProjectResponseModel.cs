@@ -2,6 +2,7 @@
 {
     public class ProjectResponseModel
     {
+        public bool isEditable { get; set; } = false;
         public object Project { get; set; }
         public object ProjectDescription { get; set; }
 
