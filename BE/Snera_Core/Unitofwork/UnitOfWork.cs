@@ -1,9 +1,13 @@
 ﻿using Snera_Core.Data;
 using Snera_Core.Entities;
-using Snera_Core.Entities.PostEntities;
+using Snera_Core.Entities.ProjectEntities;
+using Snera_Core.Entities.UserEntities;
 using Snera_Core.Interfaces;
 using Snera_Core.Repositories;
 using Snera_Core.UnitOfWork;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class UnitOfWork : IUnitOfWork
 {
@@ -18,14 +22,12 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<T> Repository<T>() where T : class
     {
         if (!_repositories.ContainsKey(typeof(T)))
-        {
             _repositories[typeof(T)] = new Repository<T>(_context);
-        }
 
         return (IRepository<T>)_repositories[typeof(T)];
     }
 
-    // User related repositories
+
     private IRepository<User>? _userRepository;
     public IRepository<User> Users
     {
@@ -47,75 +49,115 @@ public class UnitOfWork : IUnitOfWork
             return _userSkillRepository;
         }
     }
-
-    // Post related repositories
-    private IRepository<UserPost>? _userPostRepository;
-    public IRepository<UserPost> UserPosts
+    private IRepository<UserProject>? _userProjectRepository;
+    public IRepository<UserProject> UserProject
     {
         get
         {
-            if (_userPostRepository == null)
-                _userPostRepository = Repository<UserPost>();
-            return _userPostRepository;
+            if (_userProjectRepository == null)
+                _userProjectRepository = Repository<UserProject>();
+            return _userProjectRepository;
         }
     }
 
-    private IRepository<UserPost_Details>? _userPostDetailsRepository;
-    public IRepository<UserPost_Details> UserPostDetails
+    private IRepository<ProjectDescription>? _projectDescriptionRepository;
+    public IRepository<ProjectDescription> ProjectDescription
     {
         get
         {
-            if (_userPostDetailsRepository == null)
-                _userPostDetailsRepository = Repository<UserPost_Details>();
-            return _userPostDetailsRepository;
+            if (_projectDescriptionRepository == null)
+                _projectDescriptionRepository = Repository<ProjectDescription>();
+            return _projectDescriptionRepository;
         }
     }
 
-    private IRepository<UserPost_Skills>? _userPostSkillsRepository;
-    public IRepository<UserPost_Skills> UserPostSkills
+    private IRepository<ProjectTeamMembers>? _projectTeamMembersRepository;
+    public IRepository<ProjectTeamMembers> ProjectTeamMembers
     {
         get
         {
-            if (_userPostSkillsRepository == null)
-                _userPostSkillsRepository = Repository<UserPost_Skills>();
-            return _userPostSkillsRepository;
+            if (_projectTeamMembersRepository == null)
+                _projectTeamMembersRepository = Repository<ProjectTeamMembers>();
+            return _projectTeamMembersRepository;
         }
     }
 
-    private IRepository<UserPost_Roles>? _userPostRolesRepository;
-    public IRepository<UserPost_Roles> UserPostRoles
+    private IRepository<ProjectCurrentTasks>? _projectCurrentTasksRepository;
+    public IRepository<ProjectCurrentTasks> ProjectCurrentTasks
     {
         get
         {
-            if (_userPostRolesRepository == null)
-                _userPostRolesRepository = Repository<UserPost_Roles>();
-            return _userPostRolesRepository;
+            if (_projectCurrentTasksRepository == null)
+                _projectCurrentTasksRepository = Repository<ProjectCurrentTasks>();
+            return _projectCurrentTasksRepository;
         }
     }
 
-    private IRepository<PostComments>? _postCommentsRepository;
-    public IRepository<PostComments> PostComments
+    private IRepository<ProjectTaskTimeline>? _projectTaskTimelineRepository;
+    public IRepository<ProjectTaskTimeline> ProjectTaskTimeline
     {
         get
         {
-            if (_postCommentsRepository == null)
-                _postCommentsRepository = Repository<PostComments>();
-            return _postCommentsRepository;
+            if (_projectTaskTimelineRepository == null)
+                _projectTaskTimelineRepository = Repository<ProjectTaskTimeline>();
+            return _projectTaskTimelineRepository;
         }
     }
 
-    private IRepository<PostLikes>? _postLikesRepository;
-    public IRepository<PostLikes> PostLikes
+    private IRepository<ProjectDeveloperRequest>? _projectDeveloperRequestRepository;
+    public IRepository<ProjectDeveloperRequest> ProjectDeveloperRequest
     {
         get
         {
-            if (_postLikesRepository == null)
-                _postLikesRepository = Repository<PostLikes>();
-            return _postLikesRepository;
+            if (_projectDeveloperRequestRepository == null)
+                _projectDeveloperRequestRepository = Repository<ProjectDeveloperRequest>();
+            return _projectDeveloperRequestRepository;
+        }
+    }
+    private IRepository<ProjectSkill>? _projectSkillRepository;
+    public IRepository<ProjectSkill> ProjectSkill
+    {
+        get
+        {
+            if (_projectSkillRepository == null)
+                _projectSkillRepository = Repository<ProjectSkill>();
+            return _projectSkillRepository;
         }
     }
 
-    // Add other repository properties as needed...
+    private IRepository<ProjectLike>? _projectLikeRepository;
+    public IRepository<ProjectLike> ProjectLike
+    {
+        get
+        {
+            if (_projectLikeRepository == null)
+                _projectLikeRepository = Repository<ProjectLike>();
+            return _projectLikeRepository;
+        }
+    }
+
+    private IRepository<ProjectComment>? _projectCommentRepository;
+    public IRepository<ProjectComment> ProjectComment
+    {
+        get
+        {
+            if (_projectCommentRepository == null)
+                _projectCommentRepository = Repository<ProjectComment>();
+            return _projectCommentRepository;
+        }
+    }
+    private IRepository<ResourseLinks>? _resourseLnks;
+
+    public IRepository<ResourseLinks> ResourseLinks
+    {
+        get
+        {
+            if (_resourseLnks == null)
+                _resourseLnks = Repository<ResourseLinks>();
+            return _resourseLnks;
+        }
+    }
+
 
     public async Task<int> SaveAllAsync()
     {

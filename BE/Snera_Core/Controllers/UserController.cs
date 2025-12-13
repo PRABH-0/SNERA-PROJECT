@@ -50,10 +50,52 @@ namespace Snera_Core.Controllers
             }
         }
         [Authorize]
-        [HttpGet("getall")]
-        public async Task<IActionResult> GetAllUsers()
+        [HttpPut("UpdateUser")]
+        public async Task<IActionResult> UpdateUser(Guid id,UpdateUserModel model)
         {
-            var users = await _userService.GetAllUsersAsync();
+            try
+            {
+                var userResponse = await _userService.UpdateUserAsync(id ,model);
+                return Ok(userResponse);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        [Authorize]
+        [HttpDelete("DeleteUser")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            try
+            {
+                var userResponse = await _userService.SoftDeleteUserAsync(id);
+                return Ok(userResponse);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        [Authorize]
+        [HttpGet("GetUserById")]
+        public async Task<IActionResult> GetUserById(Guid id)
+        {
+            try
+            {
+                var userResponse = await _userService.GetUserByIdAsync(id);
+                return Ok(userResponse);
+            }
+            catch (System.Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        [Authorize]
+        [HttpGet("getall/{onlyActiveUsers}")]
+        public async Task<IActionResult> GetAllUsers(bool onlyActiveUsers)
+        {
+            var users = await _userService.GetAllUsersAsync(onlyActiveUsers);
             return Ok(users);
         }
     }

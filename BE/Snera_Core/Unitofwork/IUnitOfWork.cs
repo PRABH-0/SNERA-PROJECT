@@ -1,5 +1,6 @@
 ﻿using Snera_Core.Entities;
-using Snera_Core.Entities.PostEntities;
+using Snera_Core.Entities.ProjectEntities;
+using Snera_Core.Entities.UserEntities;
 using Snera_Core.Interfaces;
 using System;
 using System.Threading.Tasks;
@@ -12,13 +13,16 @@ namespace Snera_Core.UnitOfWork
         IRepository<User> Users { get; }
         IRepository<UserSkill> UserSkills { get; }
 
-        // Post related repositories
-        IRepository<UserPost> UserPosts { get; }
-        IRepository<UserPost_Details> UserPostDetails { get; }
-        IRepository<UserPost_Skills> UserPostSkills { get; }
-        IRepository<UserPost_Roles> UserPostRoles { get; }
-        IRepository<PostComments> PostComments { get; }
-        IRepository<PostLikes> PostLikes { get; }
+        IRepository<UserProject> UserProject { get; }
+        IRepository<ProjectCurrentTasks> ProjectCurrentTasks { get; }
+        IRepository<ProjectDescription> ProjectDescription { get; }
+        IRepository<ProjectDeveloperRequest> ProjectDeveloperRequest { get; }
+        IRepository<ProjectTaskTimeline> ProjectTaskTimeline { get; }
+        IRepository<ProjectTeamMembers> ProjectTeamMembers { get; }
+        IRepository<ProjectSkill> ProjectSkill { get; }
+        IRepository<ProjectLike> ProjectLike { get; }
+        IRepository<ProjectComment> ProjectComment { get; }
+        IRepository<ResourseLinks> ResourseLinks { get; }
 
         IRepository<T> Repository<T>() where T : class;
 
