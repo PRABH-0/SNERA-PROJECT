@@ -10,6 +10,9 @@ namespace Snera_Core.Services
     {
         Task<User> RegisterUserAsync(UserRegisterModel dto);
         Task<LoginResponseModel> LoginUserAsync(UserLoginModel dto);
-        Task<IEnumerable<UserModel>> GetAllUsersAsync();
+        Task<IEnumerable<UserModel>> GetAllUsersAsync(bool onlyActiveUsers);
+        Task<string> SoftDeleteUserAsync(Guid userId);
+        Task<string> UpdateUserAsync(Guid userId, UpdateUserModel dto);
+        Task<UserModel?> GetUserByIdAsync(Guid userId);
     }
 }

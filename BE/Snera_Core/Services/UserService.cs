@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Snera_Core.Common;
-using Snera_Core.Entities;
 using Snera_Core.Entities.UserEntities;
 using Snera_Core.Models.UserModels;
 using Snera_Core.UnitOfWork;
@@ -26,8 +25,8 @@ namespace Snera_Core.Services
             if (!Regex.IsMatch(dto.Email ?? "", @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
                 throw new Exception(CommonErrors.InvalidEmailFormat);
 
-            var userRepo = _unitOfWork.Repository<User>();
-            var existingUser = await userRepo.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            var existingUser = await _unitOfWork.Users
+                .FirstOrDefaultAsync(u => u.Email == dto.Email && u.Record_State == "Active");
 
             if (existingUser != null)
                 throw new Exception(CommonErrors.EmailAlreadyExists);
@@ -35,11 +34,11 @@ namespace Snera_Core.Services
             if (string.IsNullOrWhiteSpace(dto.Password) || dto.Password.Length < 6)
                 throw new Exception(CommonErrors.WeakPassword);
 
-
             var hashedPassword = _passwordHasher.HashPassword(dto.Email, dto.Password);
 
             var newUser = new User
             {
+                Id = Guid.NewGuid(),
                 FullName = dto.Full_Name,
                 Avtar_Name = GenerateAvatarName(dto.Full_Name),
                 Email = dto.Email,
@@ -48,50 +47,21 @@ namespace Snera_Core.Services
                 CurrentRole = dto.Current_Role,
                 Experience = dto.Experience,
                 Bio = dto.Bio,
-                Created_Timestamp = DateTime.UtcNow
+                Created_Timestamp = DateTime.UtcNow,
+                Record_State = "Active",
+                User_Status = "Offline"
             };
 
-            try
-            {
-                await userRepo.AddAsync(newUser);
-
-                // FIX #1 — Ensure list is valid
-                if (dto.UserSkills != null && dto.UserSkills.Any())
-                {
-                    var skillRepo = _unitOfWork.Repository<UserSkill>();
-                    var userSkillEntities = new List<UserSkill>();
-
-                    // FIX #2 — Correctly map each skill
-                    foreach (var skill in dto.UserSkills)
-                    {
-                        userSkillEntities.Add(new UserSkill
-                        {
-                            Id = Guid.NewGuid(),
-                            Skill_Name = skill,
-                            Skill_Type = string.Empty,
-                            UserId = newUser.Id
-                        });
-                    }
-
-                    await skillRepo.AddRangeAsync(userSkillEntities);
-                }
-
-                // FIX #3 — Save changes safely
-                await _unitOfWork.SaveAllAsync();
-            }
-            catch (Exception ex)
-            {
-                var msg = ex.InnerException?.Message ?? ex.Message;
-                throw new Exception("DATABASE ERROR: " + msg);
-            }
+            await _unitOfWork.Users.AddAsync(newUser);
+            await _unitOfWork.SaveAllAsync();
 
             return newUser;
         }
 
         public async Task<LoginResponseModel> LoginUserAsync(UserLoginModel dto)
         {
-            var userRepo = _unitOfWork.Repository<User>();
-            var user = await userRepo.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            var user = await _unitOfWork.Users
+                .FirstOrDefaultAsync(u => u.Email == dto.Email && u.Record_State == "Active");
 
             if (user == null)
                 throw new Exception(CommonErrors.UserNotFound);
@@ -113,18 +83,101 @@ namespace Snera_Core.Services
             };
         }
 
-        public async Task<IEnumerable<UserModel>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserModel>> GetAllUsersAsync(bool onlyActiveUsers)
         {
-            var userRepo = _unitOfWork.Repository<User>();
-            var users = await userRepo.GetAllAsync();
+            IEnumerable<User> users = onlyActiveUsers
+                ? await _unitOfWork.Users.FindAsync(u => u.Record_State == "Active")
+                : await _unitOfWork.Users.GetAllAsync();
 
             return users.Select(u => new UserModel
             {
                 Id = u.Id,
                 FullName = u.FullName,
-                Email = u.Email
+                Email = u.Email,
+                Record_State = u.Record_State
             });
         }
+
+        public async Task<UserModel?> GetUserByIdAsync(Guid userId)
+        {
+            var user = await _unitOfWork.Users
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return null;
+
+            var skills = await _unitOfWork.UserSkills
+                .FindAsync(s => s.UserId == userId);
+
+            return new UserModel
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                ProfileType = user.ProfileType,
+                CurrentRole = user.CurrentRole,
+                Experience = user.Experience,
+                Bio = user.Bio,
+                Created_Timestamp = user.Created_Timestamp,
+                User_Status = user.User_Status,
+                Record_State = user.Record_State,
+                UserSkills = skills.Select(s => s.Skill_Name).ToList()
+            };
+        }
+
+        public async Task<string> SoftDeleteUserAsync(Guid userId)
+        {
+            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return "User not found";
+
+            if (user.Record_State == "Soft_Deleted")
+                return "User already deleted";
+
+            user.Record_State = "Soft_Deleted";
+
+            await _unitOfWork.SaveAllAsync();
+            return "User deleted successfully";
+        }
+
+        public async Task<string> UpdateUserAsync(Guid userId, UpdateUserModel dto)
+        {
+            var user = await _unitOfWork.Users
+                .FirstOrDefaultAsync(u => u.Id == userId && u.Record_State == "Active");
+
+            if (user == null)
+                return "User not found";
+
+            user.FullName = dto.FullName;
+            user.ProfileType = dto.ProfileType;
+            user.CurrentRole = dto.CurrentRole;
+            user.Experience = dto.Experience;
+            user.Bio = dto.Bio;
+
+            if (dto.UserSkills != null)
+            {
+                var oldSkills = await _unitOfWork.UserSkills.FindAsync(s => s.UserId == userId);
+
+                foreach (var s in oldSkills)
+                    _unitOfWork.UserSkills.Delete(s);
+
+                foreach (var skill in dto.UserSkills)
+                {
+                    await _unitOfWork.UserSkills.AddAsync(new UserSkill
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = userId,
+                        Skill_Name = skill,
+                        Skill_Type = string.Empty
+                    });
+                }
+            }
+
+            await _unitOfWork.SaveAllAsync();
+            return "User updated successfully";
+        }
+
         private static string GenerateAvatarName(string fullName)
         {
             if (string.IsNullOrWhiteSpace(fullName))
@@ -135,6 +188,5 @@ namespace Snera_Core.Services
                 ? parts[0].Substring(0, Math.Min(2, parts[0].Length)).ToUpper()
                 : $"{parts.First()[0]}{parts.Last()[0]}".ToUpper();
         }
-
     }
 }

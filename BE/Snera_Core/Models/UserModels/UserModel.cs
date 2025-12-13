@@ -14,7 +14,8 @@ namespace Snera_Core.Models.UserModels
         public string Bio { get; set; } = string.Empty;
         public DateTime Created_Timestamp { get; set; } = DateTime.UtcNow;
         public string User_Status { get; set; } = "Offline";
+        public string Record_State { get; set; }= string.Empty;
 
-        public ICollection<UserSkill>? UserSkills { get; set; }
+        public List<string>? UserSkills { get; set; }
     }
 }

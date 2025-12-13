@@ -127,7 +127,6 @@ namespace Snera_Core.Services
                 Budget = dto.Budget,
 
                 Project_Timeline = dto.Project_Timeline,
-                Difficulty_Level = dto.Difficulty_Level,
                 Project_Visibility = dto.Project_Visibility,
                 Project_Status = dto.Project_Status,
 
