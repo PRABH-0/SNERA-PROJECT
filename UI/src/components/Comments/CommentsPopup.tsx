@@ -1,7 +1,7 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
-import API from "../../api/api";
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";  
 import MiniLoader from "../Loader/MiniLoader";
 import { getAvatarName } from "../../utils/getAvatarName";
+import postApi from "../../api/postApi";
 
 
 interface CommentItem {
@@ -70,11 +70,7 @@ const CommentsPopup: React.FC<Props> = ({
   const fetchComments = async () => {
     setLoadingComments(true);
     try {
-      const res = await API.get(`/Post/GetPostComments/${postId}`);
-      console.log("COMMENTS RESPONSE:", res.data);
-      console.log("ONE COMMENT OBJECT:", res.data.postComments?.[0]);
-
-
+      const res = await postApi.getComments(postId); 
       const list = Array.isArray(res.data.postComments)
         ? res.data.postComments
         : [];

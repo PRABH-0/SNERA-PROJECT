@@ -1,9 +1,9 @@
-import React, { useState, useEffect  } from "react";
-import API from "../../api/api";
+import React, { useState, useEffect  } from "react"; 
 import SignInForm from "../Sign/SignInForm";
 import RegisterForm from "../Sign/RegisterForm"; 
 import FullScreenLoader from "../Loader/FullScreenLoader";
 import { useNavigate } from "react-router-dom";
+import userApi from "../../api/userApi";
 
 interface SignProps {
     isOpen: boolean;
@@ -110,8 +110,7 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
                     .filter((s) => s.length > 0),
             };
 
-            const res = await API.post("/Users/register", payload);
-            console.log("✅ Registration success:", res.data);
+            await userApi.register(payload); 
             setTimeout(() => {
                 setActiveTab("signin");
                 setLoading(false);
@@ -130,8 +129,7 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
         setLoading(true);
         setLoginError("");
         try {
-            const res = await API.post("/Users/login", loginData);
-            console.log("✅ Login success:", res.data);
+            const res = await userApi.login(loginData); 
 
             const token =
                 res.data.accessToken ||
@@ -151,8 +149,7 @@ const Sign: React.FC<SignProps> = ({ isOpen, onClose, defaultTab = "signin" }) =
                     userId: res.data.userId ,
                     accessToken: token
                 };
-                 localStorage.setItem("user", JSON.stringify(userObj));
-                API.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+                 localStorage.setItem("user", JSON.stringify(userObj)); 
                 navigate("/Home");
 
             }
