@@ -90,18 +90,8 @@ const CreatePost: React.FC = () => {
   const [projectStatus, setProjectStatus] = useState<ProjectStatus>("");
   const [projectVisibility, setProjectVisibility] =
     useState<ProjectVisibility>("");
-  const AddResource = () => {
-    const url = resourceInput.trim();
-    if (!url) return;
-    if (resources.includes(url)) return;
-    setResources((prev) => [...prev, url]);
-    setResourceInput("");
-  };
 
-  const RemoveResource = (url: string) => {
-    setResources((prev) => prev.filter((r) => r !== url));
-  };
-
+  
   useEffect(() => {
     try {
       const raw = localStorage.getItem("user");
@@ -169,7 +159,7 @@ const CreatePost: React.FC = () => {
         ...skillsNeed.map((s) => ({ skill_Name: s, skill_Type: "need" }))
       ]
     };
-
+console.log("post payload :", payload);
     setLoading(true);
     try {
 
@@ -222,6 +212,27 @@ const CreatePost: React.FC = () => {
       default:
         return "Project Type";
     }
+  };
+
+  const AddResource = () => {
+  let url = resourceInput.trim();
+
+  if (!url) return;
+
+   
+  if (!url.startsWith("http://") && !url.startsWith("https://")) {
+    url = "https://" + url;
+  }
+
+  if (!resources.includes(url)) {
+    setResources((prev) => [...prev, url]);
+  }
+
+  setResourceInput("");
+};
+
+  const RemoveResource = (url: string) => {
+    setResources((prev) => prev.filter((r) => r !== url));
   };
 
   return (<>
@@ -468,8 +479,7 @@ const CreatePost: React.FC = () => {
                 id="end_Date"
                 value={form.end_Date}
                 type="date"
-                onChange={handleChange}
-                required
+                onChange={handleChange}              
                 className="
               w-full mt-2 p-3 bg-[var(--bg-tertiary)] border-2 border-[var(--border-color)]
               rounded-lg text-[var(--text-primary)]
@@ -715,7 +725,7 @@ const CreatePost: React.FC = () => {
       </form>
 
       {/* Preview Section */}
-      <div className="mb-8 rounded-xl bg-[var(--card-bg)]  shadow-[var(--card-shadow)]
+      <div className="mb-8 rounded-xl bg-[var(--bg-tertiary)]  shadow-[var(--card-shadow)]
         border border-[var(--post-border)] p-8  ">
         <h2 className="mb-5 flex items-center gap-2 text-[20px] font-semibold text-[var(--text-primary)]">
           <svg
@@ -729,7 +739,7 @@ const CreatePost: React.FC = () => {
         </h2>
 
         <div className="rounded-lg bg-[var(--card-bg)]  shadow-[var(--card-shadow)]
-        border border-[var(--post-border)] p-5">
+        border border-[var(--post-border)] p-5"> 
           {!showPreview ? (
             <div className="py-10 text-center text-sm text-[var(--text-primary)]">
               Your project preview will appear here as you fill out the form
@@ -739,13 +749,13 @@ const CreatePost: React.FC = () => {
               {/* Preview Header */}
               <div className="mb-5 flex items-start justify-between gap-4 ">
                 <div>
-                  <h3 className="mb-1 text-2xl font-bold text-[var(--text-primary)]">
+                  <h2 className="mb-1 text-3xl font-bold text-[var(--text-primary)]">
                     {form.project_Title}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-primary)">
+                  </h2>
+                  <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--text-primary) pt-2 ">
                     {form.team_Name && (
-                      <span className="rounded-full   px-3 py-1 font-medium text-[var(--text-primary)">
-                        Team: {form.team_Name}
+                      <span className="rounded-full    px-3 py-1 font-medium text-[var(--text-primary)">
+                        Team name: {form.team_Name}
                       </span>
                     )}
                     {form.start_Date && (
@@ -767,7 +777,7 @@ const CreatePost: React.FC = () => {
                     {projectTypeLabel()}
                   </span>
                   {form.experience_Level && (
-                    <span className="rounded-full bg-slate-900 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-primary)">
+                    <span className="rounded-full bg-[var(--bg-tertiary)] px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-[var(--text-primary)] ">
                       {form.experience_Level}
                     </span>
                   )}
@@ -794,7 +804,7 @@ const CreatePost: React.FC = () => {
                       skillsHave.map((skill) => (
                         <span
                           key={skill}
-                          className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-700"
+                          className="rounded-full bg-[var(--skill-have)] border border-blue-700 px-3 py-1 text-[11px] font-semibold text-[var(--text-primary)]"
                         >
                           {skill}
                         </span>
@@ -816,7 +826,7 @@ const CreatePost: React.FC = () => {
                       skillsNeed.map((skill) => (
                         <span
                           key={skill}
-                          className="rounded-full bg-red-50 px-3 py-1 text-[11px] font-semibold text-red-700"
+                          className="rounded-full bg-[var(--skill-need)] border border-red-500 px-3 py-1 text-[11px] font-semibold text-[var(--text-primary)]"
                         >
                           {skill}
                         </span>
@@ -827,7 +837,7 @@ const CreatePost: React.FC = () => {
               </div>
 
               {/* Details Grid */}
-              <div className="mt-5 grid gap-4 rounded-lg bg-[var(--card-bg)] shadow-[--card-shadow] border border-[var(--post-border)]  p-5 text-xs text-[var(--text-primary) md:grid-cols-3">
+              <div className="mt-5 grid gap-4 rounded-lg bg-[var(--card-bg)] shadow-sm shadow-[--card-shadow] border border-[var(--post-border)]  p-5 text-xs text-[var(--text-primary) md:grid-cols-3">
                 <div className="flex flex-col gap-1">
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--text-primary)">
                     Team Size
@@ -861,6 +871,7 @@ const CreatePost: React.FC = () => {
                       projectVisibility.slice(1)) ||
                       "Visibility N/A"}
                   </span>
+                   
                 </div>
               </div>
 

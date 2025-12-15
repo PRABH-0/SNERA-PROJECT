@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom"; 
+import { data, useNavigate } from "react-router-dom";
 import FullScreenLoader from "../Loader/FullScreenLoader";
 import CommentsPopup from "../Comments/CommentsPopup";
 import { getAvatarName } from "../../utils/getAvatarName";
@@ -8,7 +8,7 @@ import postApi from "../../api/postApi";
 type SkillItem = { name: string; type?: "have" | "need" };
 
 type Post = {
-  id?: number | string;
+  id?:  string;
   author_Name?: string;
   avtar_Name?: string;
   title?: string;
@@ -70,55 +70,52 @@ const Home: React.FC = () => {
     });
   };
 
-  const handleLike = async (postId: string | number) => {
+  // const handleLike = async (postId: string | number) => {
 
-    try {
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
+  //   try {
+  //     const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-      const payload = {
-        post_Id: String(postId),
-        user_Id: user.userId
-      };
+  //     const payload = {
+  //       post_Id: String(postId),
+  //       user_Id: user.userId
+  //     };
 
 
-      await postApi.updateLike(payload); 
-      const res = await postApi.getLikes(String(postId), String(user.userId));
+  //     await postApi.updateLike(payload);
+  //     const res = await postApi.getLikes(data);
 
-      const updatedIsLiked = res.data.isLike === true;
-      const updatedLikeCount = res.data.postLikes;
+  //     const updatedIsLiked = res.data.isLike === true;
+  //     const updatedLikeCount = res.data.postLikes;
 
-      setPosts(prev =>
-        prev.map(p =>
-          String(p.id) === String(postId)
-            ? {
-              ...p,
-              isLiked: updatedIsLiked,
-              likes: updatedLikeCount
-            }
-            : p
-        )
-      );
+  //     setPosts(prev =>
+  //       prev.map(p =>
+  //         String(p.id) === String(postId)
+  //           ? {
+  //             ...p,
+  //             isLiked: updatedIsLiked,
+  //             likes: updatedLikeCount
+  //           }
+  //           : p
+  //       )
+  //     );
 
-    } catch (err) {
-      console.error("Like failed:", err);
-    }
-  };
+  //   } catch (err) {
+  //     console.error("Like failed:", err);
+  //   }
+  // };
 
   const handleComment = async (postId: string | number, commentText: string) => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
 
       const payload = {
-        post_Comment: commentText,
-        user_Id: user.userId,
-        post_Id: postId
+        userId: user.userId,
+        projectId: String(postId),
+        comment: commentText
       };
 
 
       await postApi.createComment(payload);
-
-
-
       setPosts(prev =>
         prev.map(p =>
           p.id === postId
@@ -142,18 +139,18 @@ const Home: React.FC = () => {
 
 
   useEffect(() => {
-  if (didFetch.current) return;
-  didFetch.current = true;
+    if (didFetch.current) return;
+    didFetch.current = true;
 
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
 
-  if (!user?.accessToken) {
-    navigate("/");
-    return;
-  }
+    if (!user?.accessToken) {
+      navigate("/");
+      return;
+    }
 
-  fetchPosts();
-}, []);
+    fetchPosts();
+  }, []);
 
 
   useEffect(() => {
@@ -167,7 +164,7 @@ const Home: React.FC = () => {
 
       if (!hasMore) return;
 
-      
+
       if (
         window.innerHeight + window.scrollY >= document.body.offsetHeight - 300 &&
         !mainLoading
@@ -193,45 +190,51 @@ const Home: React.FC = () => {
     try {
       const user = JSON.parse(localStorage.getItem("user") || "{}");
       const res = await postApi.getAll({
-  userId: user.userId,
-  PageNumber: pageNumber,
-  PageSize: pageSize,
-  Search: search,
-  SortBy: "created_Timestamp",
-  IsDescending: true,
-  Type: typeFilter,
-  State: stateFilter,
-});
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        user_Id: user.userId,
+        isDescending: true
+      });
 
-      
-      console.log("data=> ", res.data);
-      const items = res.data.items ?? res.data.data ?? res.data;
+      console.log("API DATA => ", res.data);
+      const items = res.data.projects ?? [];
+
       const postsArr = Array.isArray(items) ? items : [];
       if (postsArr.length < pageSize) {
         setHasMore(false);
       }
 
       const normalized = postsArr.map((p: any) => ({
-        id: String(p.post_Id),
-        title: p.title,
+        id: String(p.project_Id),
+
+
+        title: p.projectTitle,
+        postType: p.projectType,
+
+
         description: p.description,
-        postType: p.post_Type,
-        author_Name: p.author_Name,
-        avtar_Name: getAvatarName(p.author_Name),
-        skills: p.skills?.map((s: any) => ({
-          name: s.skill_Name,
-          type: s.skill_Type
-        })),
 
-        timeAgo: p.created_Timestamp ? formatTime(p.created_Timestamp) : "just now",
 
-        likes: p.like_Count ?? 0,
-        comments: p.comment_Count ?? 0,
-        isLiked: Boolean(p.isLike ?? p.is_Like),
-        created_Timestamp: p.created_Timestamp,
+        author_Name: p.author_Name || "Unknown",
+        avtar_Name: getAvatarName(p.author_Name || "U"),
+
+
+        skillsHave: p.skillsHave ?? [],
+        skillsNeed: p.skillsNeed ?? [],
+
+
+        timeAgo: p.createdAt ? formatTime(p.createdAt) : "Just now",
+        created_Timestamp: p.createdAt,
+
+
+        likes: p.likeCount ?? 0,
+        comments: p.commentCount ?? 0,
+        isLiked: Boolean(p.isLiked),
+
 
 
       }));
+
       setPosts(prev => [...prev, ...normalized]);
 
     } catch (err) {
@@ -345,14 +348,12 @@ const Home: React.FC = () => {
 
                     {/* FIXED SKILLS LIST */}
                     <div className="flex flex-wrap gap-2 mb-4">
-                      {post.skills && post.skills.length > 0
-                        ? post.skills.map((s, i) => renderSkill(s, i))
-                        : null}
-
+                      {/* Skills Have */}
                       {post.skillsHave?.map((s, i) =>
                         renderSkill({ name: s, type: "have" }, i)
                       )}
 
+                      {/* Skills Need */}
                       {post.skillsNeed?.map((s, i) =>
                         renderSkill(
                           { name: s, type: "need" },
@@ -367,7 +368,7 @@ const Home: React.FC = () => {
                     <div className="flex gap-5">
 
                       <button
-                        onClick={() => handleLike(String(post.id))}
+                        // onClick={() => handleLike(String(post.id))}
 
                         className="flex items-center gap-2 text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] px-3 py-2 rounded-lg"
                       >

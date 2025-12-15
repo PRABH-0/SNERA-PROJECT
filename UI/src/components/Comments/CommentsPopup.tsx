@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useLayoutEffect } from "react";  
+import React, { useEffect, useState, useRef, useLayoutEffect } from "react";
 import MiniLoader from "../Loader/MiniLoader";
 import { getAvatarName } from "../../utils/getAvatarName";
 import postApi from "../../api/postApi";
@@ -70,7 +70,9 @@ const CommentsPopup: React.FC<Props> = ({
   const fetchComments = async () => {
     setLoadingComments(true);
     try {
-      const res = await postApi.getComments(postId); 
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const res = await postApi.getComments(String(postId), user.role);
+
       const list = Array.isArray(res.data.postComments)
         ? res.data.postComments
         : [];
