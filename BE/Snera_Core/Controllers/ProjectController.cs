@@ -36,11 +36,11 @@ namespace Snera_Core.Controllers
 
         [HttpGet("GetProject")]
         [Authorize]
-        public async Task<IActionResult> GetProject(string role, Guid projectId)
+        public async Task<IActionResult> GetProject(string projectRole, Guid projectId)
         {
             try
             {
-                var response = await _projectService.GetProject(role, projectId);
+                var response = await _projectService.GetProject(projectRole, projectId);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -160,6 +160,35 @@ namespace Snera_Core.Controllers
             try
             {
                 var response = await _projectService.AddResourceLink(model);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        [HttpGet("GetTrendingSkills")]
+        [Authorize]
+        public async Task<IActionResult> GetTrendingSkills()
+        {
+            try
+            {
+                var response = await _projectService.GetTrendingSkills();
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpPost("SendDeveloperRequest")]
+        [Authorize]
+        public async Task<IActionResult> SendDeveloperRequest(JoinTeamRequestModel request)
+        {
+            try
+            {
+                var response = await _projectService.SendDeveloperRequest(request);
                 return Ok(response);
             }
             catch (Exception ex)

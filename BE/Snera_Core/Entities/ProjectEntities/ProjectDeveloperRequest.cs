@@ -20,5 +20,6 @@ namespace Snera_Core.Entities.ProjectEntities
         public DateTime? Last_Edited_Timestamp { get; set; }
         public DateTime Created_At { get; set; } = DateTime.UtcNow;
         public string Record_State { get; set; } = "Active";
+        public ICollection<ProjectDeveloperRequestSkill> Skills { get; set; }
     }
 }

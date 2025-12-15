@@ -157,6 +157,17 @@ public class UnitOfWork : IUnitOfWork
             return _resourseLnks;
         }
     }
+    private IRepository<ProjectDeveloperRequestSkill>? _projectDeveloperRequestSkill;
+
+    public IRepository<ProjectDeveloperRequestSkill> ProjectDeveloperRequestSkill
+    {
+        get
+        {
+            if (_projectDeveloperRequestSkill == null)
+                _projectDeveloperRequestSkill = Repository<ProjectDeveloperRequestSkill>();
+            return _projectDeveloperRequestSkill;
+        }
+    }
 
 
     public async Task<int> SaveAllAsync()

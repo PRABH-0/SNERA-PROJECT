@@ -4,6 +4,7 @@ using Snera_Core.Interface;
 using Snera_Core.Models.HelperModels;
 using Snera_Core.Models.UserProjectModels;
 using Snera_Core.UnitOfWork;
+using System.Globalization;
 
 namespace Snera_Core.Services
 {
@@ -14,6 +15,7 @@ namespace Snera_Core.Services
         {
             _unitOfWork = unitOfWork;
         }
+
         public async Task<List<ProjectTaskResponseModel>> GetAllCurrentTasks(Guid projectId)
         {
             var tasks = await _unitOfWork.ProjectCurrentTasks
@@ -29,7 +31,7 @@ namespace Snera_Core.Services
                     Is_Completed = t.Is_Completed,
                     Is_Trashed = t.Is_Trashed,
                     User_Id = t.User_Id,
-                    User_Name = t.User?.FullName ?? "Unknown", 
+                    User_Name = t.User?.FullName ?? "Unknown",
                     Project_Id = t.Project_Id,
                     Created_At = t.Created_At
                 })
@@ -37,35 +39,43 @@ namespace Snera_Core.Services
 
             return result;
         }
-
         public async Task<ProjectResponseModel> GetProject(string role, Guid projectId)
         {
-            var project = await _unitOfWork.UserProject
-                .FirstOrDefaultAsync(p => p.Id == projectId);
+            role = role?.ToLower();
 
-            var description = await _unitOfWork.ProjectDescription
-                .FirstOrDefaultAsync(d => d.Project_Id == projectId);
+            bool isEditable = role == "admin";
+            bool displayJoinTeamButton = role == "user";
 
-            var teamMembers = await _unitOfWork.ProjectTeamMembers
-                .GetAllAsync(t => t.Project_Id == projectId);
+            // Load core project tables
+            var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
+            var description = await _unitOfWork.ProjectDescription.FirstOrDefaultAsync(d => d.Project_Id == projectId);
 
-            var tasks = await _unitOfWork.ProjectCurrentTasks
-                .GetAllAsync(t => t.Project_Id == projectId);
+            var teamMembers = await _unitOfWork.ProjectTeamMembers.GetAllAsync(t => t.Project_Id == projectId);
+            var tasks = await _unitOfWork.ProjectCurrentTasks.GetAllAsync(t => t.Project_Id == projectId);
+            var timelines = await _unitOfWork.ProjectTaskTimeline.GetAllAsync(t => t.Project_Id == projectId);
+            var devRequests = await _unitOfWork.ProjectDeveloperRequest.GetAllAsync(t => t.Project_Id == projectId);
+            var resourceLinks = await _unitOfWork.ResourseLinks.GetAllAsync(r => r.Project_Id == projectId);
 
-            var timelines = await _unitOfWork.ProjectTaskTimeline
-                .GetAllAsync(t => t.Project_Id == projectId);
+            // ⭐ NEW → Load skills for this project
+            var projectSkills = await _unitOfWork.ProjectSkill.GetAllAsync(s => s.Project_Id == projectId);
 
-            var devRequests = await _unitOfWork.ProjectDeveloperRequest
-                .GetAllAsync(t => t.Project_Id == projectId);
+            // Load Developer Request Skills in bulk
+            var devRequestIds = devRequests.Select(r => r.Id).ToList();
+            var devRequestSkills = devRequestIds.Any()
+                ? await _unitOfWork.ProjectDeveloperRequestSkill
+                    .GetAllAsync(s => devRequestIds.Contains(s.DeveloperRequest_Id))
+                : new List<ProjectDeveloperRequestSkill>();
 
-            var resourceLinks = await _unitOfWork.ResourseLinks
-                .GetAllAsync(r => r.Project_Id == projectId);
+            // Load all user profiles for developer requests
+            var requestUserIds = devRequests.Select(r => r.User_Id).Distinct().ToList();
+            var requestUsers = await _unitOfWork.Users.FindAsync(u => requestUserIds.Contains(u.Id));
 
             return new ProjectResponseModel
             {
-                isEditable = role == "Admin",
+                isEditable = isEditable,
+                displayJoinTeamButton = displayJoinTeamButton,
 
-                Project = new
+                Project = project == null ? null : new
                 {
                     project.Id,
                     project.Created_Timestamp,
@@ -73,7 +83,7 @@ namespace Snera_Core.Services
                     project.User_Status
                 },
 
-                ProjectDescription = new
+                ProjectDescription = description == null ? null : new
                 {
                     description.Id,
                     description.Project_Id,
@@ -127,15 +137,34 @@ namespace Snera_Core.Services
                     t.Created_At
                 }),
 
-                DeveloperRequests = devRequests.Select(r => new
+                DeveloperRequests = devRequests.Select(r =>
                 {
-                    r.Id,
-                    r.Project_Id,
-                    r.User_Id,
-                    r.Project_Interested_Text,
-                    r.Project_Experience_Text,
-                    r.Active_Hour,
-                    r.Created_At
+                    var user = requestUsers.FirstOrDefault(u => u.Id == r.User_Id);
+
+                    return new
+                    {
+                        r.Id,
+                        r.Project_Id,
+                        r.User_Id,
+
+                        User_Name = user?.FullName ?? "Unknown",
+                        User_Email = user?.Email ?? "",
+                        User_Avtar = user?.Avtar_Name ?? "",
+                        User_Bio = user?.Bio ?? "",
+                        User_CurrentRole = user?.CurrentRole ?? "",
+
+                        r.Project_Interested_Text,
+                        r.Project_Experience_Text,
+                        r.Active_Hour,
+                        r.Created_At,
+                        r.Last_Edited_Timestamp,
+                        r.Record_State,
+
+                        Skills = devRequestSkills
+                            .Where(s => s.DeveloperRequest_Id == r.Id)
+                            .Select(s => s.Skill_Name)
+                            .ToList()
+                    };
                 }),
 
                 ResourceLinks = resourceLinks.Select(r => new
@@ -144,8 +173,58 @@ namespace Snera_Core.Services
                     r.Project_Id,
                     r.Link,
                     r.Created_At
-                })
+                }),
+
+                SkillsHave = projectSkills
+                    .Where(s => s.Skill_Type == "Have")
+                    .Select(s => s.Skill_Name)
+                    .ToList(),
+
+                SkillsNeed = projectSkills
+                    .Where(s => s.Skill_Type == "Need")
+                    .Select(s => s.Skill_Name)
+                    .ToList()
             };
+        }
+
+        public async Task<CommonResponse> SendDeveloperRequest(JoinTeamRequestModel request)
+        {
+            var newRequest = new ProjectDeveloperRequest
+            {
+                Id = Guid.NewGuid(),
+                User_Id = request.User_Id,
+                Project_Id = request.Project_Id,
+                Project_Interested_Text = request.InterestText,
+                Project_Experience_Text = request.ExperienceText,
+                Active_Hour = request.ActiveHour,
+                Created_At = DateTime.UtcNow
+            };
+
+            await _unitOfWork.ProjectDeveloperRequest.AddAsync(newRequest);
+            await _unitOfWork.SaveAllAsync();
+
+            // ⭐ Save Skills Table (if any)
+            if (request.Skills != null && request.Skills.Any())
+            {
+                foreach (var rawSkill in request.Skills)
+                {
+                    var skill = rawSkill?.Trim();
+                    if (string.IsNullOrWhiteSpace(skill)) continue;
+
+                    var skillEntity = new ProjectDeveloperRequestSkill
+                    {
+                        Id = Guid.NewGuid(),
+                        DeveloperRequest_Id = newRequest.Id,
+                        Skill_Name = skill
+                    };
+
+                    await _unitOfWork.ProjectDeveloperRequestSkill.AddAsync(skillEntity);
+                }
+
+                await _unitOfWork.SaveAllAsync();
+            }
+
+            return new CommonResponse(true, "Developer Request Sent Successfully!");
         }
 
         public async Task<string> CreateProject(UserPostModel dto)
@@ -199,19 +278,42 @@ namespace Snera_Core.Services
                 Record_State = "Active"
             });
 
-            if (dto.User_Skills != null)
+            // ⭐ UPDATED — Save Skills (Have + Need)
+            if (dto.SkillsHave != null)
             {
-                foreach (var s in dto.User_Skills)
+                foreach (var skill in dto.SkillsHave)
                 {
-                    await _unitOfWork.ProjectSkill.AddAsync(new ProjectSkill
+                    if (!string.IsNullOrWhiteSpace(skill))
                     {
-                        Id = Guid.NewGuid(),
-                        Project_Id = project.Id,
-                        Skill_Name = s.Skill_Name,
-                        Skill_Type = s.Skill_Type
-                    });
+                        await _unitOfWork.ProjectSkill.AddAsync(new ProjectSkill
+                        {
+                            Id = Guid.NewGuid(),
+                            Project_Id = project.Id,
+                            Skill_Name = skill.Trim(),
+                            Skill_Type = "Have"   // ⭐ FIXED
+                        });
+                    }
                 }
             }
+
+            if (dto.SkillsNeed != null)
+            {
+                foreach (var skill in dto.SkillsNeed)
+                {
+                    if (!string.IsNullOrWhiteSpace(skill))
+                    {
+                        await _unitOfWork.ProjectSkill.AddAsync(new ProjectSkill
+                        {
+                            Id = Guid.NewGuid(),
+                            Project_Id = project.Id,
+                            Skill_Name = skill.Trim(),
+                            Skill_Type = "Need"   // ⭐ FIXED
+                        });
+                    }
+                }
+            }
+
+            // LINKS
             if (dto.Link != null)
             {
                 foreach (var l in dto.Link)
@@ -224,7 +326,6 @@ namespace Snera_Core.Services
                     });
                 }
             }
-
 
             await _unitOfWork.SaveAllAsync();
             return "Project created successfully.";
@@ -285,11 +386,30 @@ namespace Snera_Core.Services
             {
                 var projectId = desc.Project_Id;
 
-                // Filter data for this project
                 var skills = allSkills.Where(s => s.Project_Id == projectId);
                 var likes = allLikes.Where(l => l.Project_Id == projectId);
                 var comments = allComments.Where(c => c.Project_Id == projectId);
                 var links = allLinks.Where(r => r.Project_Id == projectId);
+
+                var adminMember = await _unitOfWork.ProjectTeamMembers
+                    .FirstOrDefaultAsync(t => t.Project_Id == projectId && t.Is_Admin == true);
+
+                string userName = "Unknown";
+                Guid? userId = null;
+                string? avtarName = "";
+
+                if (adminMember != null)
+                {
+                    var user = await _unitOfWork.Users
+                        .FirstOrDefaultAsync(u => u.Id == adminMember.User_Id);
+
+                    if (user != null)
+                    {
+                        userId = user.Id;
+                        userName = user.FullName;
+                        avtarName = user.Avtar_Name;
+                    }
+                }
 
                 // Format comments
                 var formattedComments = comments.Select(c =>
@@ -306,7 +426,7 @@ namespace Snera_Core.Services
                     };
                 }).ToList();
 
-                // Add final project card
+                // ⭐ UPDATED PROJECT ITEM
                 result.Add(new ProjectListItemDto
                 {
                     Project_Id = desc.Project_Id,
@@ -319,19 +439,28 @@ namespace Snera_Core.Services
                     ExperienceLevel = desc.Experience_Level,
                     CreatedAt = desc.Created_At,
 
-                    // skills
+                    Team_Name = desc.Team_Name,
+                    Start_Date = desc.Start_Date,
+                    End_Date = desc.End_Date,
+
+                    // Author
+                    User_Id = userId,
+                    Author_Name = userName,
+                    Avtar_Name = avtarName,
+
+                    // Skills
                     SkillsHave = skills.Where(s => s.Skill_Type == "Have").Select(s => s.Skill_Name).ToList(),
                     SkillsNeed = skills.Where(s => s.Skill_Type == "Need").Select(s => s.Skill_Name).ToList(),
 
-                    // likes
+                    // Likes
                     LikeCount = likes.Count(),
                     IsLiked = request.User_Id != null && likes.Any(l => l.User_Id == request.User_Id),
 
-                    // comments
+                    // Comments
                     CommentCount = comments.Count(),
                     Comments = formattedComments,
 
-                    // resource links
+                    // Resources
                     ResourceLinks = links.Select(l => l.Link).ToList()
                 });
             }
@@ -378,6 +507,7 @@ namespace Snera_Core.Services
                 return "Disliked";
             }
         }
+
         public async Task<string> AddResourceLink(CreateResourceLinkModel dto)
         {
             var project = await _unitOfWork.UserProject
@@ -400,6 +530,7 @@ namespace Snera_Core.Services
 
             return "Resource link added successfully";
         }
+
         public async Task<string> UpdateProjectDescription(UpdateProjectDescriptionModel model)
         {
             var desc = await _unitOfWork.ProjectDescription
@@ -479,9 +610,63 @@ namespace Snera_Core.Services
 
             await _unitOfWork.ProjectCurrentTasks.AddAsync(task);
             await _unitOfWork.SaveAllAsync();
-            await _unitOfWork.SaveAllAsync();
 
             return "Task added successfully";
+        }
+        public async Task<List<TrendingSkillDto>> GetTrendingSkills()
+        {
+            var projectSkills = await _unitOfWork.ProjectSkill.GetAllAsync();
+
+            var requestSkills = await _unitOfWork.ProjectDeveloperRequestSkill.GetAllAsync();
+
+            var projectSkillGroups = projectSkills
+                .GroupBy(s => s.Skill_Name.Trim().ToLower())
+                .Select(g => new
+                {
+                    Skill = g.Key,
+                    ProjectCount = g.Count() // how many projects require this skill
+                })
+                .ToList();
+
+            // 4️⃣ Group developer skills (developers who have used this in request)
+            var developerSkillGroups = requestSkills
+                .GroupBy(s => s.Skill_Name.Trim().ToLower())
+                .Select(g => new
+                {
+                    Skill = g.Key,
+                    DeveloperCount = g.Count()
+                })
+                .ToList();
+
+            // 5️⃣ Merge both datasets
+            var merged = projectSkillGroups
+                .GroupJoin(
+                    developerSkillGroups,
+                    p => p.Skill,
+                    d => d.Skill,
+                    (p, dGroup) => new
+                    {
+                        Skill = p.Skill,
+                        ProjectCount = p.ProjectCount,
+                        DeveloperCount = dGroup.FirstOrDefault()?.DeveloperCount ?? 0
+                    })
+                .ToList();
+
+            // 6️⃣ Calculate Trending Growth %
+            var trendingList = merged.Select(m => new TrendingSkillDto
+            {
+                SkillName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(m.Skill),
+                ProjectCount = m.ProjectCount,
+                DeveloperCount = m.DeveloperCount,
+
+                // Simple demand-to-supply ratio formula:  
+                GrowthPercentage = CalculateGrowth(m.ProjectCount, m.DeveloperCount)
+            })
+            .OrderByDescending(x => x.GrowthPercentage) // highest growth first
+            .Take(10) // return only top 10
+            .ToList();
+
+            return trendingList;
         }
 
         public async Task<string> CommentOnProject(Guid userId, Guid projectId, string comment)
@@ -509,6 +694,16 @@ namespace Snera_Core.Services
             await _unitOfWork.SaveAllAsync();
 
             return "Comment added";
+        }
+        private int CalculateGrowth(int projectCount, int developerCount)
+        {
+            if (developerCount == 0) return projectCount * 5; 
+
+            double ratio = (double)projectCount / developerCount;
+
+            double growth = ratio * 100;
+
+            return (int)Math.Round(growth);
         }
     }
 }
