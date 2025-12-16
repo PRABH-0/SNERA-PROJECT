@@ -4,6 +4,7 @@ import FullScreenLoader from "../Loader/FullScreenLoader";
 import CommentsPopup from "../Comments/CommentsPopup";
 import { getAvatarName } from "../../utils/getAvatarName";
 import postApi from "../../api/postApi";
+import TrendingSkills from "../TrendingSkills/TrendingSkills";
 
 type SkillItem = { name: string; type?: "have" | "need" };
 
@@ -427,8 +428,11 @@ const Home: React.FC = () => {
 
               />
             )}
-
+  
           </div>
+           <div className="hidden lg:block w-[280px] flex-shrink-0">
+          <TrendingSkills />
+        </div>
         </div>
       </div>
     </main>
