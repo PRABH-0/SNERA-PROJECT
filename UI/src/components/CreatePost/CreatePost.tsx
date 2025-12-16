@@ -23,9 +23,9 @@ type experienceLevel =
 type TeamSize =
   | ""
   | "1"
-  | "2-3"
-  | "4-6"
-  | "7+";
+  | "2-4"
+  | "5-7"
+  | "8+";
 
 type TimeCommitment =
   | ""
@@ -53,7 +53,8 @@ interface ProjectForm {
   project_Status: ProjectStatus;
   project_Visibility: ProjectVisibility;
   link: string[];
-  user_Skills: { skill_Name: string; skill_Type: string }[];
+  skillsHave: string[];
+  skillsNeed: string[];
 }
 
 const CreatePost: React.FC = () => {
@@ -71,7 +72,8 @@ const CreatePost: React.FC = () => {
     project_Status: "",
     project_Visibility: "",
     link: [""],
-    user_Skills: []
+    skillsHave: [""],
+    skillsNeed: [""],
   });
 
 
@@ -91,7 +93,7 @@ const CreatePost: React.FC = () => {
   const [projectVisibility, setProjectVisibility] =
     useState<ProjectVisibility>("");
 
-  
+
   useEffect(() => {
     try {
       const raw = localStorage.getItem("user");
@@ -99,6 +101,13 @@ const CreatePost: React.FC = () => {
     } catch { }
   }, []);
 
+    const teamSizeMap: Record<TeamSize, number> = {
+  "": 0,
+  "1": 1,
+  "2-4": 4,
+  "5-7": 7,
+  "8+": 8,
+}; 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.id]: e.target.value });
   };
@@ -130,22 +139,23 @@ const CreatePost: React.FC = () => {
 
     const payload = {
       user_Id: user?.userId ?? null,
-      post: form.project_Title,
+
       project_Title: form.project_Title,
       project_Description: form.project_Description,
       project_Type: form.project_Type,
 
       team_Name: form.team_Name,
-      budget: String(form.budget || "0"),
+      budget: String(form.budget || null),
 
       project_Timeline: form.project_Timeline,
 
 
-      team_Size: Number(form.team_Size.replace(/[^0-9]/g, "")) || 0,
+      team_Size: teamSizeMap[form.team_Size],
+
       experience_Level: form.experience_Level,
 
-      start_Date: form.start_Date,
-      end_Date: form.end_Date,
+      start_Date: form.start_Date || null,
+      end_Date: form.end_Date || null,
 
       project_Status: projectStatus,
       project_Visibility: projectVisibility,
@@ -153,13 +163,12 @@ const CreatePost: React.FC = () => {
 
       link: resources,
 
+      skillsHave: skillsHave,
+      skillsNeed: skillsNeed,
 
-      user_Skills: [
-        ...skillsHave.map((s) => ({ skill_Name: s, skill_Type: "have" })),
-        ...skillsNeed.map((s) => ({ skill_Name: s, skill_Type: "need" }))
-      ]
+
     };
-console.log("post payload :", payload);
+    console.log("post payload :", payload);
     setLoading(true);
     try {
 
@@ -215,21 +224,21 @@ console.log("post payload :", payload);
   };
 
   const AddResource = () => {
-  let url = resourceInput.trim();
+    let url = resourceInput.trim();
 
-  if (!url) return;
+    if (!url) return;
 
-   
-  if (!url.startsWith("http://") && !url.startsWith("https://")) {
-    url = "https://" + url;
-  }
 
-  if (!resources.includes(url)) {
-    setResources((prev) => [...prev, url]);
-  }
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      url = "https://" + url;
+    }
 
-  setResourceInput("");
-};
+    if (!resources.includes(url)) {
+      setResources((prev) => [...prev, url]);
+    }
+
+    setResourceInput("");
+  };
 
   const RemoveResource = (url: string) => {
     setResources((prev) => prev.filter((r) => r !== url));
@@ -479,7 +488,7 @@ console.log("post payload :", payload);
                 id="end_Date"
                 value={form.end_Date}
                 type="date"
-                onChange={handleChange}              
+                onChange={handleChange}
                 className="
               w-full mt-2 p-3 bg-[var(--bg-tertiary)] border-2 border-[var(--border-color)]
               rounded-lg text-[var(--text-primary)]
@@ -516,9 +525,9 @@ console.log("post payload :", payload);
               >
                 <option value="">Select size</option>
                 <option value="1">Solo Project</option>
-                <option value="2-3">Small (2-3 people)</option>
-                <option value="4-6">Medium (4-6 people)</option>
-                <option value="7+">Large (7+ people)</option>
+                <option value="2-4">Small (2-4 people)</option>
+                <option value="5-7">Medium (5-7 people)</option>
+                <option value="8+">Large (8+ people)</option>
               </select>
             </div>
             <div className="pb-7">
@@ -739,7 +748,7 @@ console.log("post payload :", payload);
         </h2>
 
         <div className="rounded-lg bg-[var(--card-bg)]  shadow-[var(--card-shadow)]
-        border border-[var(--post-border)] p-5"> 
+        border border-[var(--post-border)] p-5">
           {!showPreview ? (
             <div className="py-10 text-center text-sm text-[var(--text-primary)]">
               Your project preview will appear here as you fill out the form
@@ -871,7 +880,7 @@ console.log("post payload :", payload);
                       projectVisibility.slice(1)) ||
                       "Visibility N/A"}
                   </span>
-                   
+
                 </div>
               </div>
 
