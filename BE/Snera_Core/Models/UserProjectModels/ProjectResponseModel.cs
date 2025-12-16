@@ -3,8 +3,11 @@
     public class ProjectResponseModel
     {
         public bool isEditable { get; set; } = false;
-        public object Project { get; set; }
-        public object ProjectDescription { get; set; }
+        public bool? displayJoinTeamButton { get; set; } = true;
+        public object? Project { get; set; }
+        public object? ProjectDescription { get; set; }
+        public List<string>? SkillsHave { get; set; }
+        public List<string>? SkillsNeed { get; set; }
 
         public IEnumerable<object> TeamMembers { get; set; }
         public IEnumerable<object> CurrentTasks { get; set; }

@@ -28,9 +28,8 @@ namespace Snera_Core.Models.UserProjectModels
         public string Project_Visibility { get; set; } = "Public";
         //links
         public List<string>? Link {  get; set; }
-
-        // Skills
-        public List<ProjectSkillsModel>? User_Skills { get; set; }
+        public List<string>? SkillsHave { get; set; }
+        public List<string>? SkillsNeed { get; set; }
 
     }
 }

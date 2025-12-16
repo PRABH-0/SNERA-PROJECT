@@ -21,6 +21,7 @@ namespace Snera_Core.Data
         public DbSet<ProjectLike> ProjectLike { get; set; }
         public DbSet<ProjectComment> ProjectComment { get; set; }
         public DbSet<ResourseLinks> ResourseLinks { get; set; }
+        public DbSet<ProjectDeveloperRequestSkill> ProjectDeveloperRequestSkill { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

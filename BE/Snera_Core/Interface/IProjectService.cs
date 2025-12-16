@@ -15,6 +15,8 @@ namespace Snera_Core.Interface
         Task<string> AddProjectTimeline(CreateTimelineModel dto);
         Task<string> UpdateProjectDescription(UpdateProjectDescriptionModel model);
         Task<List<ProjectTaskResponseModel>> GetAllCurrentTasks(Guid projectId);
+        Task<CommonResponse> SendDeveloperRequest(JoinTeamRequestModel request);
+        Task<List<TrendingSkillDto>> GetTrendingSkills();
 
     }
 }
