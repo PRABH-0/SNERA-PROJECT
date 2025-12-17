@@ -36,11 +36,11 @@ namespace Snera_Core.Controllers
 
         [HttpGet("GetProject")]
         [Authorize]
-        public async Task<IActionResult> GetProject(string projectRole, Guid projectId)
+        public async Task<IActionResult> GetProject(Guid userId, Guid projectId)
         {
             try
             {
-                var response = await _projectService.GetProject(projectRole, projectId);
+                var response = await _projectService.GetProject(userId, projectId);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -196,5 +196,36 @@ namespace Snera_Core.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+        [HttpGet("GetDeveloperRequestsByProjectId")]
+        [Authorize]
+        public async Task<IActionResult> GetDeveloperRequestsByProjectId(Guid projectId)
+        {
+            try
+            {
+                var response = await _projectService.GetDeveloperRequestsByProjectId(projectId);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+        [HttpPost("HandleDeveloperRequest")]
+        [Authorize]
+        public async Task<IActionResult> HandleDeveloperRequest( Guid adminUserId,  Guid developerRequestId, bool isAccepted)
+        {
+            try
+            {
+                var response = await _projectService
+                    .HandleDeveloperRequest(adminUserId, developerRequestId, isAccepted);
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
     }
 }

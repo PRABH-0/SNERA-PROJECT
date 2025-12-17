@@ -20,6 +20,12 @@ namespace Snera_Core.Repositories
             _dbSet = context.Set<T>();
         }
 
+        // ⭐ NEW
+        public IQueryable<T> GetQueryable()
+        {
+            return _dbSet.AsQueryable();
+        }
+
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
@@ -55,7 +61,6 @@ namespace Snera_Core.Repositories
             _dbSet.Remove(entity);
         }
 
-
         public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.Where(predicate).ToListAsync();
@@ -69,6 +74,16 @@ namespace Snera_Core.Repositories
         public async Task<T?> SingleOrDefaultAsync(Expression<Func<T, bool>> predicate)
         {
             return await _dbSet.SingleOrDefaultAsync(predicate);
+        }
+
+        public async Task<T> FirstAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.FirstAsync(predicate);
+        }
+
+        public async Task<T> SingleAsync(Expression<Func<T, bool>> predicate)
+        {
+            return await _dbSet.SingleAsync(predicate);
         }
 
         public async Task<bool> AnyAsync(Expression<Func<T, bool>> predicate)
@@ -94,16 +109,6 @@ namespace Snera_Core.Repositories
         public async Task<long> LongCountAsync()
         {
             return await _dbSet.LongCountAsync();
-        }
-
-        public async Task<T> FirstAsync(Expression<Func<T, bool>> predicate)
-        {
-            return await _dbSet.FirstAsync(predicate);
-        }
-
-        public async Task<T> SingleAsync(Expression<Func<T, bool>> predicate)
-        {
-            return await _dbSet.SingleAsync(predicate);
         }
     }
 }

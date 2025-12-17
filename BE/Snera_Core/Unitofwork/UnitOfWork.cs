@@ -1,4 +1,5 @@
-﻿using Snera_Core.Data;
+﻿using Microsoft.EntityFrameworkCore.Storage;
+using Snera_Core.Data;
 using Snera_Core.Entities;
 using Snera_Core.Entities.ProjectEntities;
 using Snera_Core.Entities.UserEntities;
@@ -13,7 +14,7 @@ public class UnitOfWork : IUnitOfWork
 {
     private readonly DataContext _context;
     private readonly Dictionary<Type, object> _repositories = new();
-
+    private IDbContextTransaction? _transaction;
     public UnitOfWork(DataContext context)
     {
         _context = context;
@@ -169,7 +170,31 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public async Task BeginTransactionAsync()
+    {
+        if (_transaction == null)
+            _transaction = await _context.Database.BeginTransactionAsync();
+    }
 
+    public async Task CommitTransactionAsync()
+    {
+        if (_transaction != null)
+        {
+            await _transaction.CommitAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+    }
+
+    public async Task RollbackTransactionAsync()
+    {
+        if (_transaction != null)
+        {
+            await _transaction.RollbackAsync();
+            await _transaction.DisposeAsync();
+            _transaction = null;
+        }
+    }
     public async Task<int> SaveAllAsync()
     {
         return await _context.SaveChangesAsync();
