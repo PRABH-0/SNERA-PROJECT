@@ -13,6 +13,7 @@ namespace Snera_Core.UnitOfWork
         IRepository<User> Users { get; }
         IRepository<UserSkill> UserSkills { get; }
 
+        // Project related repositories
         IRepository<UserProject> UserProject { get; }
         IRepository<ProjectCurrentTasks> ProjectCurrentTasks { get; }
         IRepository<ProjectDescription> ProjectDescription { get; }
@@ -25,8 +26,15 @@ namespace Snera_Core.UnitOfWork
         IRepository<ResourseLinks> ResourseLinks { get; }
         IRepository<ProjectDeveloperRequestSkill> ProjectDeveloperRequestSkill { get; }
 
+        // Generic repository
         IRepository<T> Repository<T>() where T : class;
 
+        // Save
         Task<int> SaveAllAsync();
+
+        // ⭐ Transaction support (REQUIRED by ProjectService)
+        Task BeginTransactionAsync();
+        Task CommitTransactionAsync();
+        Task RollbackTransactionAsync();
     }
 }

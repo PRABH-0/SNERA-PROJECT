@@ -13,6 +13,7 @@ namespace Snera_Core.Entities.ProjectEntities
         public ICollection<ProjectCurrentTasks>? ProjectCurrentTasks { get; set; }
         public ICollection<ProjectTaskTimeline>? ProjectTimelines { get; set; }
         public ICollection<ProjectDeveloperRequest>? ProjectDeveloperRequest { get; set; }
+        public ICollection<ProjectSkill>? ProjectSkills { get; set; }
         public ICollection<ProjectDescription>? ProjectDescription { get; set; }
         public ICollection<ResourseLinks>? ResourseLinks { get; set; }
     }

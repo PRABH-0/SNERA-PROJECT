@@ -5,7 +5,7 @@ namespace Snera_Core.Interface
 {
     public interface IProjectService
     {
-        Task<ProjectResponseModel> GetProject(string role , Guid postId);
+        Task<ProjectResponseModel> GetProject(Guid userId , Guid projectId);
         Task<string> CreateProject(UserPostModel post);
         Task<GetProjectListResponse> GetAllPosts(FilterModel request);
         Task<string> LikeProjectPost(Guid userId, Guid projectId);
@@ -17,6 +17,8 @@ namespace Snera_Core.Interface
         Task<List<ProjectTaskResponseModel>> GetAllCurrentTasks(Guid projectId);
         Task<CommonResponse> SendDeveloperRequest(JoinTeamRequestModel request);
         Task<List<TrendingSkillDto>> GetTrendingSkills();
+        Task<string> HandleDeveloperRequest(Guid adminUserId, Guid developerRequestId, bool isAccepted);
+        Task<List<object>> GetDeveloperRequestsByProjectId(Guid projectId);
 
     }
 }

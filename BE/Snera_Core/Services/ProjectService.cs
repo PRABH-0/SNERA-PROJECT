@@ -1,4 +1,6 @@
-﻿using Snera_Core.Common;
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using Snera_Core.Common;
 using Snera_Core.Entities.ProjectEntities;
 using Snera_Core.Interface;
 using Snera_Core.Models.HelperModels;
@@ -11,17 +13,24 @@ namespace Snera_Core.Services
     public class ProjectService : IProjectService
     {
         private readonly IUnitOfWork _unitOfWork;
-        public ProjectService(IUnitOfWork unitOfWork)
+        private readonly IMapper _mapper;
+
+        public ProjectService(IUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
         }
 
         public async Task<List<ProjectTaskResponseModel>> GetAllCurrentTasks(Guid projectId)
         {
+            // Fixed: Remove 'include' parameter and use queryable approach
             var tasks = await _unitOfWork.ProjectCurrentTasks
-                .FindAsync(t => t.Project_Id == projectId);
+                .GetQueryable()
+                .Include(t => t.User)
+                .Where(t => t.Project_Id == projectId)
+                .ToListAsync();
 
-            var result = tasks
+            return tasks
                 .OrderByDescending(t => t.Created_At)
                 .Select(t => new ProjectTaskResponseModel
                 {
@@ -36,159 +45,91 @@ namespace Snera_Core.Services
                     Created_At = t.Created_At
                 })
                 .ToList();
-
-            return result;
         }
-        public async Task<ProjectResponseModel> GetProject(string role, Guid projectId)
+
+        public async Task<ProjectResponseModel> GetProject(Guid userId, Guid projectId)
         {
-            role = role?.ToLower();
+            // Single database query for admin check and member status
+            var member = await _unitOfWork.ProjectTeamMembers
+                .FirstOrDefaultAsync(t => t.Project_Id == projectId && t.User_Id == userId);
 
-            bool isEditable = role == "admin";
-            bool displayJoinTeamButton = role == "user";
+            bool isEditable = member?.Is_Admin == true;
+            bool displayJoinTeamButton = member == null;
 
-            // Load core project tables
-            var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
-            var description = await _unitOfWork.ProjectDescription.FirstOrDefaultAsync(d => d.Project_Id == projectId);
+            // Fixed: Use correct property names for navigation properties
+            var project = await _unitOfWork.UserProject
+                .GetQueryable()
+                .Include(p => p.ProjectDescription)
+                .Include(p => p.ProjectTeamMembers)
+                .Include(p => p.ProjectCurrentTasks)
+                .Include(p => p.ProjectTimelines)  // Fixed: Singular form
+                .Include(p => p.ProjectSkills)  // Fixed: This should exist now
+                .Include(p => p.ResourseLinks)
+                .FirstOrDefaultAsync(p => p.Id == projectId);
 
-            var teamMembers = await _unitOfWork.ProjectTeamMembers.GetAllAsync(t => t.Project_Id == projectId);
-            var tasks = await _unitOfWork.ProjectCurrentTasks.GetAllAsync(t => t.Project_Id == projectId);
-            var timelines = await _unitOfWork.ProjectTaskTimeline.GetAllAsync(t => t.Project_Id == projectId);
-            var devRequests = await _unitOfWork.ProjectDeveloperRequest.GetAllAsync(t => t.Project_Id == projectId);
-            var resourceLinks = await _unitOfWork.ResourseLinks.GetAllAsync(r => r.Project_Id == projectId);
+            if (project == null)
+                return null;
 
-            // ⭐ NEW → Load skills for this project
-            var projectSkills = await _unitOfWork.ProjectSkill.GetAllAsync(s => s.Project_Id == projectId);
+            // Fixed: Use correct property name
+            var devRequests = await _unitOfWork.ProjectDeveloperRequest
+                .GetQueryable()
+                .Include(r => r.User)
+                .Include(r => r.ProjectDeveloperRequestSkill)  // Fixed: Correct property name
+                .Where(r => r.Project_Id == projectId)
+                .ToListAsync();
+            var description = project.ProjectDescription?.OrderByDescending(d => d.Created_At).FirstOrDefault();
 
-            // Load Developer Request Skills in bulk
-            var devRequestIds = devRequests.Select(r => r.Id).ToList();
-            var devRequestSkills = devRequestIds.Any()
-                ? await _unitOfWork.ProjectDeveloperRequestSkill
-                    .GetAllAsync(s => devRequestIds.Contains(s.DeveloperRequest_Id))
-                : new List<ProjectDeveloperRequestSkill>();
-
-            // Load all user profiles for developer requests
-            var requestUserIds = devRequests.Select(r => r.User_Id).Distinct().ToList();
-            var requestUsers = await _unitOfWork.Users.FindAsync(u => requestUserIds.Contains(u.Id));
-
-            return new ProjectResponseModel
+            // Map using AutoMapper
+            var response = new ProjectResponseModel
             {
-                isEditable = isEditable,
-                displayJoinTeamButton = displayJoinTeamButton,
-
-                Project = project == null ? null : new
-                {
-                    project.Id,
-                    project.Created_Timestamp,
-                    project.Record_State,
-                    project.User_Status
-                },
-
-                ProjectDescription = description == null ? null : new
-                {
-                    description.Id,
-                    description.Project_Id,
-                    description.Team_Name,
-                    description.Project_Type,
-                    description.Project_Title,
-                    description.Description,
-                    description.Budget,
-                    description.Project_Timeline,
-                    description.Project_Visibility,
-                    description.Team_Size,
-                    description.Experience_Level,
-                    description.Project_Status,
-                    description.Start_Date,
-                    description.End_Date,
-                    description.Last_Edited_Timestamp,
-                    description.Created_At
-                },
-
-                TeamMembers = teamMembers.Select(t => new
-                {
-                    t.Id,
-                    t.User_Id,
-                    t.Project_Id,
-                    t.Member_Role,
-                    t.Is_Admin,
-                    t.Created_At,
-                    t.Record_State
-                }),
-
-                CurrentTasks = tasks.Select(t => new
-                {
-                    t.Id,
-                    t.Task_Name,
-                    t.Task_End_Date,
-                    t.Is_Completed,
-                    t.Is_Trashed,
-                    t.User_Id,
-                    t.Project_Id,
-                    t.Created_At
-                }),
-
-                Timelines = timelines.Select(t => new
-                {
-                    t.Id,
-                    t.Project_Id,
-                    t.User_Id,
-                    t.TimeLine_Title,
-                    t.Date_TimeFrame,
-                    t.Timeline_Description,
-                    t.Created_At
-                }),
-
-                DeveloperRequests = devRequests.Select(r =>
-                {
-                    var user = requestUsers.FirstOrDefault(u => u.Id == r.User_Id);
-
-                    return new
-                    {
-                        r.Id,
-                        r.Project_Id,
-                        r.User_Id,
-
-                        User_Name = user?.FullName ?? "Unknown",
-                        User_Email = user?.Email ?? "",
-                        User_Avtar = user?.Avtar_Name ?? "",
-                        User_Bio = user?.Bio ?? "",
-                        User_CurrentRole = user?.CurrentRole ?? "",
-
-                        r.Project_Interested_Text,
-                        r.Project_Experience_Text,
-                        r.Active_Hour,
-                        r.Created_At,
-                        r.Last_Edited_Timestamp,
-                        r.Record_State,
-
-                        Skills = devRequestSkills
-                            .Where(s => s.DeveloperRequest_Id == r.Id)
-                            .Select(s => s.Skill_Name)
-                            .ToList()
-                    };
-                }),
-
-                ResourceLinks = resourceLinks.Select(r => new
-                {
-                    r.Id,
-                    r.Project_Id,
-                    r.Link,
-                    r.Created_At
-                }),
-
-                SkillsHave = projectSkills
+                IsEditable = isEditable,
+                DisplayJoinTeamButton = displayJoinTeamButton,
+                Project = _mapper.Map<ProjectDto>(project),
+                ProjectDescription = description == null? null: _mapper.Map<ProjectDescriptionDto>(description),
+                TeamMembers = _mapper.Map<List<TeamMemberDto>>(project.ProjectTeamMembers),
+                CurrentTasks = _mapper.Map<List<TaskDto>>(project.ProjectCurrentTasks),
+                Timelines = _mapper.Map<List<TimelineDto>>(project.ProjectTimelines),  // Fixed: Singular form
+                DeveloperRequests = _mapper.Map<List<DeveloperRequestDto>>(devRequests),
+                ResourceLinks = _mapper.Map<List<ResourceLinkDto>>(project.ResourseLinks),
+                SkillsHave = project.ProjectSkills
                     .Where(s => s.Skill_Type == "Have")
                     .Select(s => s.Skill_Name)
                     .ToList(),
-
-                SkillsNeed = projectSkills
+                SkillsNeed = project.ProjectSkills
                     .Where(s => s.Skill_Type == "Need")
                     .Select(s => s.Skill_Name)
                     .ToList()
             };
+
+            return response;
         }
 
         public async Task<CommonResponse> SendDeveloperRequest(JoinTeamRequestModel request)
         {
+            // Combined check in single query
+            var existing = await _unitOfWork.ProjectTeamMembers
+                .FirstOrDefaultAsync(t =>
+                    t.Project_Id == request.Project_Id &&
+                    t.User_Id == request.User_Id &&
+                    t.Record_State == "Active");
+
+            if (existing != null)
+            {
+                return new CommonResponse(false, "You are already a member of this project.");
+            }
+
+            var existingRequest = await _unitOfWork.ProjectDeveloperRequest
+                .FirstOrDefaultAsync(r =>
+                    r.Project_Id == request.Project_Id &&
+                    r.User_Id == request.User_Id &&
+                    r.Record_State != "Rejected");
+
+            if (existingRequest != null)
+            {
+                return new CommonResponse(false, "You have already sent a request for this project.");
+            }
+
+            // Create new request
             var newRequest = new ProjectDeveloperRequest
             {
                 Id = Guid.NewGuid(),
@@ -197,34 +138,31 @@ namespace Snera_Core.Services
                 Project_Interested_Text = request.InterestText,
                 Project_Experience_Text = request.ExperienceText,
                 Active_Hour = request.ActiveHour,
-                Created_At = DateTime.UtcNow
+                Created_At = DateTime.UtcNow,
+                Record_State = "Pending"
             };
 
             await _unitOfWork.ProjectDeveloperRequest.AddAsync(newRequest);
             await _unitOfWork.SaveAllAsync();
 
-            // ⭐ Save Skills Table (if any)
+            // Save skills in batch
             if (request.Skills != null && request.Skills.Any())
             {
-                foreach (var rawSkill in request.Skills)
-                {
-                    var skill = rawSkill?.Trim();
-                    if (string.IsNullOrWhiteSpace(skill)) continue;
-
-                    var skillEntity = new ProjectDeveloperRequestSkill
+                var skillEntities = request.Skills
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(rawSkill => new ProjectDeveloperRequestSkill
                     {
                         Id = Guid.NewGuid(),
                         DeveloperRequest_Id = newRequest.Id,
-                        Skill_Name = skill
-                    };
+                        Skill_Name = rawSkill.Trim()
+                    })
+                    .ToList();
 
-                    await _unitOfWork.ProjectDeveloperRequestSkill.AddAsync(skillEntity);
-                }
-
+                await _unitOfWork.ProjectDeveloperRequestSkill.AddRangeAsync(skillEntities);
                 await _unitOfWork.SaveAllAsync();
             }
 
-            return new CommonResponse(true, "Developer Request Sent Successfully!");
+            return new CommonResponse(true, "Developer request sent successfully.");
         }
 
         public async Task<string> CreateProject(UserPostModel dto)
@@ -238,36 +176,28 @@ namespace Snera_Core.Services
                 Record_State = "Active",
                 User_Status = "Offline"
             };
-            await _unitOfWork.UserProject.AddAsync(project);
 
             var description = new ProjectDescription
             {
                 Id = Guid.NewGuid(),
                 Project_Id = project.Id,
-
                 Team_Name = dto.Team_Name,
                 Project_Type = dto.Project_Type,
                 Project_Title = dto.Project_Title,
                 Description = dto.Project_Description,
                 Budget = dto.Budget,
-
                 Project_Timeline = dto.Project_Timeline,
                 Project_Visibility = dto.Project_Visibility,
                 Project_Status = dto.Project_Status,
-
                 Team_Size = dto.Team_Size,
                 Experience_Level = dto.Experience_Level,
-
                 Start_Date = dto.Start_Date,
                 End_Date = dto.End_Date,
-
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
             };
 
-            await _unitOfWork.ProjectDescription.AddAsync(description);
-
-            await _unitOfWork.ProjectTeamMembers.AddAsync(new ProjectTeamMembers
+            var adminMember = new ProjectTeamMembers
             {
                 Id = Guid.NewGuid(),
                 Project_Id = project.Id,
@@ -276,85 +206,99 @@ namespace Snera_Core.Services
                 Is_Admin = true,
                 Created_At = DateTime.UtcNow,
                 Record_State = "Active"
-            });
+            };
 
-            // ⭐ UPDATED — Save Skills (Have + Need)
+            // Prepare skills in batch
+            var skillEntities = new List<ProjectSkill>();
+
             if (dto.SkillsHave != null)
             {
-                foreach (var skill in dto.SkillsHave)
-                {
-                    if (!string.IsNullOrWhiteSpace(skill))
+                skillEntities.AddRange(dto.SkillsHave
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(skill => new ProjectSkill
                     {
-                        await _unitOfWork.ProjectSkill.AddAsync(new ProjectSkill
-                        {
-                            Id = Guid.NewGuid(),
-                            Project_Id = project.Id,
-                            Skill_Name = skill.Trim(),
-                            Skill_Type = "Have"   // ⭐ FIXED
-                        });
-                    }
-                }
+                        Id = Guid.NewGuid(),
+                        Project_Id = project.Id,
+                        Skill_Name = skill.Trim(),
+                        Skill_Type = "Have"
+                    }));
             }
 
             if (dto.SkillsNeed != null)
             {
-                foreach (var skill in dto.SkillsNeed)
-                {
-                    if (!string.IsNullOrWhiteSpace(skill))
-                    {
-                        await _unitOfWork.ProjectSkill.AddAsync(new ProjectSkill
-                        {
-                            Id = Guid.NewGuid(),
-                            Project_Id = project.Id,
-                            Skill_Name = skill.Trim(),
-                            Skill_Type = "Need"   // ⭐ FIXED
-                        });
-                    }
-                }
-            }
-
-            // LINKS
-            if (dto.Link != null)
-            {
-                foreach (var l in dto.Link)
-                {
-                    await _unitOfWork.ResourseLinks.AddAsync(new ResourseLinks
+                skillEntities.AddRange(dto.SkillsNeed
+                    .Where(s => !string.IsNullOrWhiteSpace(s))
+                    .Select(skill => new ProjectSkill
                     {
                         Id = Guid.NewGuid(),
                         Project_Id = project.Id,
-                        Link = l
-                    });
-                }
+                        Skill_Name = skill.Trim(),
+                        Skill_Type = "Need"
+                    }));
             }
 
-            await _unitOfWork.SaveAllAsync();
-            return "Project created successfully.";
+            // Prepare links in batch
+            var linkEntities = new List<ResourseLinks>();
+            if (dto.Link != null)
+            {
+                linkEntities.AddRange(dto.Link.Select(link => new ResourseLinks
+                {
+                    Id = Guid.NewGuid(),
+                    Project_Id = project.Id,
+                    Link = link
+                }));
+            }
+
+            // Execute all operations in single transaction
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                await _unitOfWork.UserProject.AddAsync(project);
+                await _unitOfWork.ProjectDescription.AddAsync(description);
+                await _unitOfWork.ProjectTeamMembers.AddAsync(adminMember);
+
+                if (skillEntities.Any())
+                    await _unitOfWork.ProjectSkill.AddRangeAsync(skillEntities);
+
+                if (linkEntities.Any())
+                    await _unitOfWork.ResourseLinks.AddRangeAsync(linkEntities);
+
+                await _unitOfWork.SaveAllAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return "Project created successfully.";
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return $"Error creating project: {ex.Message}";
+            }
         }
 
         public async Task<GetProjectListResponse> GetAllPosts(FilterModel request)
         {
-            // Fix pagination values
-            if (request.PageNumber <= 0) request.PageNumber = 1;
-            if (request.PageSize <= 0) request.PageSize = 10;
+            // Pagination safety
+            request.PageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
+            request.PageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
-            // 1️⃣ Get Active project descriptions
+            // 1️⃣ Get active project descriptions
             var descriptions = await _unitOfWork.ProjectDescription
                 .FindAsync(d => d.Record_State == "Active");
 
-            // 2️⃣ Sorting
+            // Sorting
             descriptions = request.IsDescending
                 ? descriptions.OrderByDescending(d => d.Created_At)
                 : descriptions.OrderBy(d => d.Created_At);
 
             int totalCount = descriptions.Count();
 
-            // 3️⃣ Pagination
-            var paged = descriptions
+            // Pagination
+            var pagedDescriptions = descriptions
                 .Skip((request.PageNumber - 1) * request.PageSize)
                 .Take(request.PageSize)
                 .ToList();
 
-            if (!paged.Any())
+            if (!pagedDescriptions.Any())
             {
                 return new GetProjectListResponse
                 {
@@ -366,77 +310,56 @@ namespace Snera_Core.Services
                 };
             }
 
-            // Extract project IDs (for batch queries)
-            var projectIds = paged.Select(p => p.Project_Id).ToList();
+            // 2️⃣ Extract Project IDs
+            var projectIds = pagedDescriptions.Select(d => d.Project_Id).ToList();
 
-            // 4️⃣ Batch queries
-            var allSkills = await _unitOfWork.ProjectSkill.FindAsync(s => projectIds.Contains(s.Project_Id));
-            var allLikes = await _unitOfWork.ProjectLike.FindAsync(l => projectIds.Contains(l.Project_Id));
-            var allComments = await _unitOfWork.ProjectComment.FindAsync(c => projectIds.Contains(c.Project_Id));
-            var allLinks = await _unitOfWork.ResourseLinks.FindAsync(r => projectIds.Contains(r.Project_Id));
+            // 3️⃣ Load related data in batches
+            var skills = await _unitOfWork.ProjectSkill.FindAsync(s => projectIds.Contains(s.Project_Id));
+            var likes = await _unitOfWork.ProjectLike.FindAsync(l => projectIds.Contains(l.Project_Id));
+            var comments = await _unitOfWork.ProjectComment.FindAsync(c => projectIds.Contains(c.Project_Id));
+            var links = await _unitOfWork.ResourseLinks.FindAsync(r => projectIds.Contains(r.Project_Id));
+            var teamMembers = await _unitOfWork.ProjectTeamMembers.FindAsync(t => projectIds.Contains(t.Project_Id));
 
-            // Load comment users
-            var commentUserIds = allComments.Select(c => c.User_Id).Distinct().ToList();
-            var commentUsers = await _unitOfWork.Users.FindAsync(u => commentUserIds.Contains(u.Id));
+            // Load users
+            var userIds = teamMembers.Select(t => t.User_Id)
+                .Concat(comments.Select(c => c.User_Id))
+                .Distinct()
+                .ToList();
 
-            // Final list
-            var result = new List<ProjectListItemDto>();
+            var users = await _unitOfWork.Users.FindAsync(u => userIds.Contains(u.Id));
 
-            foreach (var desc in paged)
+            // 4️⃣ Build response
+            var projects = pagedDescriptions.Select(desc =>
             {
                 var projectId = desc.Project_Id;
 
-                var skills = allSkills.Where(s => s.Project_Id == projectId);
-                var likes = allLikes.Where(l => l.Project_Id == projectId);
-                var comments = allComments.Where(c => c.Project_Id == projectId);
-                var links = allLinks.Where(r => r.Project_Id == projectId);
+                var admin = teamMembers
+                    .FirstOrDefault(t => t.Project_Id == projectId && t.Is_Admin);
 
-                var adminMember = await _unitOfWork.ProjectTeamMembers
-                    .FirstOrDefaultAsync(t => t.Project_Id == projectId && t.Is_Admin == true);
+                var adminUser = users.FirstOrDefault(u => u.Id == admin?.User_Id);
 
-                string userName = "Unknown";
-                Guid? userId = null;
-                string? avtarName = "";
+                var projectLikes = likes.Where(l => l.Project_Id == projectId);
+                var projectComments = comments.Where(c => c.Project_Id == projectId);
+                var projectSkills = skills.Where(s => s.Project_Id == projectId);
+                var projectLinks = links.Where(l => l.Project_Id == projectId);
 
-                if (adminMember != null)
+                return new ProjectListItemDto
                 {
-                    var user = await _unitOfWork.Users
-                        .FirstOrDefaultAsync(u => u.Id == adminMember.User_Id);
+                    Project_Id = projectId,
 
-                    if (user != null)
-                    {
-                        userId = user.Id;
-                        userName = user.FullName;
-                        avtarName = user.Avtar_Name;
-                    }
-                }
-
-                // Format comments
-                var formattedComments = comments.Select(c =>
-                {
-                    var user = commentUsers.FirstOrDefault(u => u.Id == c.User_Id);
-
-                    return new ProjectCommentModel
-                    {
-                        Comment_Id = c.Id,
-                        User_Id = c.User_Id,
-                        User_Name = user?.FullName ?? "Unknown",
-                        Comment_Text = c.Comment_Text,
-                        Created_At = c.Created_At
-                    };
-                }).ToList();
-
-                // ⭐ UPDATED PROJECT ITEM
-                result.Add(new ProjectListItemDto
-                {
-                    Project_Id = desc.Project_Id,
                     ProjectTitle = desc.Project_Title,
                     ProjectType = desc.Project_Type,
                     Description = desc.Description,
                     Budget = desc.Budget,
                     Timeline = desc.Project_Timeline,
+
                     TeamSize = desc.Team_Size,
                     ExperienceLevel = desc.Experience_Level,
+
+                    // ✅ ADDED FROM ProjectDescription
+                    Project_Status = desc.Project_Status,
+                    Project_Visibility = desc.Project_Visibility,
+
                     CreatedAt = desc.Created_At,
 
                     Team_Name = desc.Team_Name,
@@ -444,26 +367,45 @@ namespace Snera_Core.Services
                     End_Date = desc.End_Date,
 
                     // Author
-                    User_Id = userId,
-                    Author_Name = userName,
-                    Avtar_Name = avtarName,
+                    User_Id = adminUser?.Id,
+                    Author_Name = adminUser?.FullName ?? "Unknown",
+                    Avtar_Name = adminUser?.Avtar_Name,
 
                     // Skills
-                    SkillsHave = skills.Where(s => s.Skill_Type == "Have").Select(s => s.Skill_Name).ToList(),
-                    SkillsNeed = skills.Where(s => s.Skill_Type == "Need").Select(s => s.Skill_Name).ToList(),
+                    SkillsHave = projectSkills
+                        .Where(s => s.Skill_Type == "Have")
+                        .Select(s => s.Skill_Name)
+                        .ToList(),
+
+                    SkillsNeed = projectSkills
+                        .Where(s => s.Skill_Type == "Need")
+                        .Select(s => s.Skill_Name)
+                        .ToList(),
 
                     // Likes
-                    LikeCount = likes.Count(),
-                    IsLiked = request.User_Id != null && likes.Any(l => l.User_Id == request.User_Id),
+                    LikeCount = projectLikes.Count(),
+                    IsLiked = request.User_Id != null &&
+                              projectLikes.Any(l => l.User_Id == request.User_Id),
 
                     // Comments
-                    CommentCount = comments.Count(),
-                    Comments = formattedComments,
+                    CommentCount = projectComments.Count(),
+                    Comments = projectComments.Select(c =>
+                    {
+                        var user = users.FirstOrDefault(u => u.Id == c.User_Id);
+                        return new ProjectCommentModel
+                        {
+                            Comment_Id = c.Id,
+                            User_Id = c.User_Id,
+                            User_Name = user?.FullName ?? "Unknown",
+                            Comment_Text = c.Comment_Text,
+                            Created_At = c.Created_At
+                        };
+                    }).ToList(),
 
                     // Resources
-                    ResourceLinks = links.Select(l => l.Link).ToList()
-                });
-            }
+                    ResourceLinks = projectLinks.Select(l => l.Link).ToList()
+                };
+            }).ToList();
 
             return new GetProjectListResponse
             {
@@ -471,18 +413,18 @@ namespace Snera_Core.Services
                 TotalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize),
                 PageNumber = request.PageNumber,
                 PageSize = request.PageSize,
-                Projects = result
+                Projects = projects
             };
         }
 
         public async Task<string> LikeProjectPost(Guid userId, Guid projectId)
         {
-            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
+            var userExists = await _unitOfWork.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
                 return "Invalid user. User does not exist.";
 
-            var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
-            if (project == null)
+            var projectExists = await _unitOfWork.UserProject.AnyAsync(p => p.Id == projectId);
+            if (!projectExists)
                 return "Invalid project. Project does not exist.";
 
             var existing = await _unitOfWork.ProjectLike
@@ -510,10 +452,10 @@ namespace Snera_Core.Services
 
         public async Task<string> AddResourceLink(CreateResourceLinkModel dto)
         {
-            var project = await _unitOfWork.UserProject
-                .FirstOrDefaultAsync(p => p.Id == dto.Project_Id);
+            var projectExists = await _unitOfWork.UserProject
+                .AnyAsync(p => p.Id == dto.Project_Id);
 
-            if (project == null)
+            if (!projectExists)
                 return "Project not found";
 
             var link = new ResourseLinks
@@ -539,22 +481,19 @@ namespace Snera_Core.Services
             if (desc == null)
                 return "Project description not found";
 
+            // Update properties
             desc.Team_Name = model.Team_Name;
             desc.Project_Type = model.Project_Type;
             desc.Project_Title = model.Project_Title;
             desc.Description = model.Description;
             desc.Budget = model.Budget;
-
             desc.Project_Timeline = model.Project_Timeline;
             desc.Project_Visibility = model.Project_Visibility;
             desc.Project_Status = model.Project_Status;
-
             desc.Team_Size = model.Team_Size;
             desc.Experience_Level = model.Experience_Level;
-
             desc.Start_Date = model.Start_Date;
             desc.End_Date = model.End_Date;
-
             desc.Last_Edited_Timestamp = DateTime.UtcNow;
 
             await _unitOfWork.SaveAllAsync();
@@ -563,10 +502,10 @@ namespace Snera_Core.Services
 
         public async Task<string> AddProjectTimeline(CreateTimelineModel dto)
         {
-            var project = await _unitOfWork.UserProject
-                .FirstOrDefaultAsync(p => p.Id == dto.Project_Id);
+            var projectExists = await _unitOfWork.UserProject
+                .AnyAsync(p => p.Id == dto.Project_Id);
 
-            if (project == null)
+            if (!projectExists)
                 return "Project not found";
 
             var timeline = new ProjectTaskTimeline
@@ -589,10 +528,10 @@ namespace Snera_Core.Services
 
         public async Task<string> AddCurrentTask(CreateTaskModel dto)
         {
-            var project = await _unitOfWork.UserProject
-                .FirstOrDefaultAsync(p => p.Id == dto.Project_Id);
+            var projectExists = await _unitOfWork.UserProject
+                .AnyAsync(p => p.Id == dto.Project_Id);
 
-            if (project == null)
+            if (!projectExists)
                 return "Project not found";
 
             var task = new ProjectCurrentTasks
@@ -613,60 +552,125 @@ namespace Snera_Core.Services
 
             return "Task added successfully";
         }
+
         public async Task<List<TrendingSkillDto>> GetTrendingSkills()
         {
+            // Get all project skills
             var projectSkills = await _unitOfWork.ProjectSkill.GetAllAsync();
 
+            // Get all developer request skills
             var requestSkills = await _unitOfWork.ProjectDeveloperRequestSkill.GetAllAsync();
 
-            var projectSkillGroups = projectSkills
+            // Process in memory for better performance
+            var projectSkillDict = projectSkills
                 .GroupBy(s => s.Skill_Name.Trim().ToLower())
-                .Select(g => new
-                {
-                    Skill = g.Key,
-                    ProjectCount = g.Count() // how many projects require this skill
-                })
-                .ToList();
+                .ToDictionary(g => g.Key, g => g.Count());
 
-            // 4️⃣ Group developer skills (developers who have used this in request)
-            var developerSkillGroups = requestSkills
+            var developerSkillDict = requestSkills
                 .GroupBy(s => s.Skill_Name.Trim().ToLower())
-                .Select(g => new
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            // Combine both dictionaries
+            var allSkillNames = projectSkillDict.Keys.Union(developerSkillDict.Keys);
+
+            var trendingList = allSkillNames
+                .Select(skillName => new TrendingSkillDto
                 {
-                    Skill = g.Key,
-                    DeveloperCount = g.Count()
+                    SkillName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(skillName),
+                    ProjectCount = projectSkillDict.GetValueOrDefault(skillName, 0),
+                    DeveloperCount = developerSkillDict.GetValueOrDefault(skillName, 0),
+                    GrowthPercentage = CalculateGrowth(
+                        projectSkillDict.GetValueOrDefault(skillName, 0),
+                        developerSkillDict.GetValueOrDefault(skillName, 0))
                 })
+                .Where(x => x.ProjectCount > 0) // Only include skills with projects
+                .OrderByDescending(x => x.GrowthPercentage)
+                .ThenByDescending(x => x.ProjectCount)
+                .Take(6)
                 .ToList();
-
-            // 5️⃣ Merge both datasets
-            var merged = projectSkillGroups
-                .GroupJoin(
-                    developerSkillGroups,
-                    p => p.Skill,
-                    d => d.Skill,
-                    (p, dGroup) => new
-                    {
-                        Skill = p.Skill,
-                        ProjectCount = p.ProjectCount,
-                        DeveloperCount = dGroup.FirstOrDefault()?.DeveloperCount ?? 0
-                    })
-                .ToList();
-
-            // 6️⃣ Calculate Trending Growth %
-            var trendingList = merged.Select(m => new TrendingSkillDto
-            {
-                SkillName = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(m.Skill),
-                ProjectCount = m.ProjectCount,
-                DeveloperCount = m.DeveloperCount,
-
-                // Simple demand-to-supply ratio formula:  
-                GrowthPercentage = CalculateGrowth(m.ProjectCount, m.DeveloperCount)
-            })
-            .OrderByDescending(x => x.GrowthPercentage) // highest growth first
-            .Take(10) // return only top 10
-            .ToList();
 
             return trendingList;
+        }
+
+        public async Task<List<object>> GetDeveloperRequestsByProjectId(Guid projectId)
+        {
+            // Fixed: Use correct property name
+            var requests = await _unitOfWork.ProjectDeveloperRequest
+                .GetQueryable()
+                .Include(r => r.User)
+                .Include(r => r.ProjectDeveloperRequestSkill)  // Fixed: Correct property name
+                .Where(r => r.Project_Id == projectId && r.Record_State == "Active")
+                .ToListAsync();
+
+            if (!requests.Any())
+                return new List<object>();
+
+            return requests.Select(r => new
+            {
+                r.Id,
+                r.Project_Id,
+                r.User_Id,
+                User_Name = r.User?.FullName ?? "Unknown",
+                User_Email = r.User?.Email ?? "",
+                r.Project_Interested_Text,
+                r.Project_Experience_Text,
+                r.Active_Hour,
+                r.Created_At,
+                Skills = r.ProjectDeveloperRequestSkill.Select(s => s.Skill_Name).ToList()  // Fixed: Correct property name
+            }).ToList<object>();
+        }
+
+        public async Task<string> HandleDeveloperRequest(Guid adminUserId, Guid developerRequestId, bool isAccepted)
+        {
+            var request = await _unitOfWork.ProjectDeveloperRequest
+                .FirstOrDefaultAsync(r => r.Id == developerRequestId);
+
+            if (request == null)
+                return "Developer request not found";
+
+            var admin = await _unitOfWork.ProjectTeamMembers
+                .FirstOrDefaultAsync(t =>
+                    t.Project_Id == request.Project_Id &&
+                    t.User_Id == adminUserId &&
+                    t.Is_Admin == true);
+
+            if (admin == null)
+                return "Only admin can accept or reject requests";
+
+            await _unitOfWork.BeginTransactionAsync();
+            try
+            {
+                if (isAccepted)
+                {
+                    await _unitOfWork.ProjectTeamMembers.AddAsync(new ProjectTeamMembers
+                    {
+                        Id = Guid.NewGuid(),
+                        Project_Id = request.Project_Id,
+                        User_Id = request.User_Id,
+                        Member_Role = "Developer",
+                        Is_Admin = false,
+                        Created_At = DateTime.UtcNow,
+                        Record_State = "Active"
+                    });
+                    request.Record_State = "Accepted";
+                }
+                else
+                {
+                    request.Record_State = "Rejected";
+                }
+
+                request.Last_Edited_Timestamp = DateTime.UtcNow;
+
+                await _unitOfWork.SaveAllAsync();
+                await _unitOfWork.CommitTransactionAsync();
+
+                return isAccepted ? "Developer request accepted" : "Developer request rejected";
+            }
+            catch (Exception ex)
+            {
+                await _unitOfWork.RollbackTransactionAsync();
+                return $"Error handling developer request: {ex.Message}";
+            }
         }
 
         public async Task<string> CommentOnProject(Guid userId, Guid projectId, string comment)
@@ -674,18 +678,20 @@ namespace Snera_Core.Services
             if (string.IsNullOrWhiteSpace(comment))
                 return "Comment cannot be empty.";
 
-            var user = await _unitOfWork.Users.FirstOrDefaultAsync(u => u.Id == userId);
-            if (user == null)
+            var userExists = await _unitOfWork.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
                 return "Invalid user. User does not exist.";
 
-            var project = await _unitOfWork.UserProject.FirstOrDefaultAsync(p => p.Id == projectId);
-            if (project == null)
+            var projectExists = await _unitOfWork.UserProject.AnyAsync(p => p.Id == projectId);
+            if (!projectExists)
                 return "Invalid project. Project does not exist.";
 
+            // Fixed: Added missing Project property initialization
             await _unitOfWork.ProjectComment.AddAsync(new ProjectComment
             {
                 Id = Guid.NewGuid(),
                 Project_Id = projectId,
+                Project = null, // This will be set by EF Core via relationship
                 User_Id = userId,
                 Comment_Text = comment.Trim(),
                 Created_At = DateTime.UtcNow
@@ -695,15 +701,16 @@ namespace Snera_Core.Services
 
             return "Comment added";
         }
+
         private int CalculateGrowth(int projectCount, int developerCount)
         {
-            if (developerCount == 0) return projectCount * 5; 
+            if (developerCount == 0)
+                return Math.Min(projectCount * 5, 100); // Cap at 100%
 
             double ratio = (double)projectCount / developerCount;
-
             double growth = ratio * 100;
 
-            return (int)Math.Round(growth);
+            return (int)Math.Min(Math.Round(growth), 100); // Cap at 100%
         }
     }
 }

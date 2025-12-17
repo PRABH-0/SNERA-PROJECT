@@ -1,12 +1,14 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using Snera_Core.Data;
 using Snera_Core.Interface;
 using Snera_Core.Interfaces;
+using Snera_Core.Mappings;
 using Snera_Core.Repositories;
 using Snera_Core.Services;
 using Snera_Core.UnitOfWork;
@@ -75,7 +77,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<UserService>();
-
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>

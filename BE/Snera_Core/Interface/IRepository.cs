@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 
@@ -7,9 +8,11 @@ namespace Snera_Core.Interfaces
 {
     public interface IRepository<T> where T : class
     {
+        // Queryable access (VERY IMPORTANT)
+        IQueryable<T> GetQueryable();
+
         // Get all
         Task<IEnumerable<T>> GetAllAsync();
-
         Task<IEnumerable<T>> GetAllAsync(Expression<Func<T, bool>> predicate);
 
         // Single
@@ -27,7 +30,7 @@ namespace Snera_Core.Interfaces
         void Update(T entity);
         void Delete(T entity);
 
-        // Query helpers
+        // Helpers
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> predicate);
         Task<bool> AnyAsync(Expression<Func<T, bool>> predicate);
         Task<int> CountAsync(Expression<Func<T, bool>> predicate);

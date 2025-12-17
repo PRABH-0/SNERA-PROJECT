@@ -1,0 +1,158 @@
+/* src/components/TrendingSkills/TrendingSkills.css */
+
+/* Main section */
+.trending-skills-section {
+  width: 280px;
+  background-color: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 20px;
+  margin-left: 15px;
+  box-shadow: var(--card-shadow);
+  height: fit-content;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  position: sticky;
+  top: 80px;
+  transition: all 0.3s ease;
+}
+
+/* Header */
+.trending-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.trending-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trending-title-icon {
+  width: 20px;
+  height: 20px;
+  fill: var(--accent-color);
+}
+
+.close-trending {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  transition: color 0.3s;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.close-trending:hover {
+  color: var(--text-primary);
+  background-color: var(--bg-tertiary);
+}
+
+/* Skill items */
+.trending-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s;
+  gap: 8px;
+}
+
+.trending-item:last-child {
+  border-bottom: none;
+}
+
+.trending-item:hover {
+  background-color: var(--bg-tertiary);
+  margin: 0 -10px;
+  padding: 10px;
+  border-radius: 6px;
+}
+
+.trending-skill-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.trending-skill-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.trending-skill-stats {
+  display: flex;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  flex-wrap: wrap;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.trending-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.trending-stat-value {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.trending-growth {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.growth-positive {
+  background-color: rgba(46, 125, 50, 0.1);
+  color: var(--growth-positive);
+}
+
+.growth-icon {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .trending-skills-section {
+    width: 100%;
+    position: relative;
+    top: 0;
+    margin-top: 20px;
+    display: none; /* Hidden on mobile by default */
+  }
+  
+  .trending-skills-section.mobile-visible {
+    display: block;
+  }
+}
