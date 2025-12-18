@@ -18,7 +18,7 @@ API.interceptors.request.use((config) => {
     config.headers["Authorization"] = `Bearer ${token}`;
   } 
   if (userId) {
-    config.headers["UserId"] = userId;   // VERY IMPORTANT
+    config.headers["UserId"] = userId;    
   }
   return config;
 });

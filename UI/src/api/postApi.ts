@@ -5,7 +5,18 @@ const postApi = {
 
     create: (data: any) => API.post("/Project/CreatePost", data),
 
-    updateLike: (data: any) => API.post("/Project/LikeProjectPost", data),
+    updateLike(userId: string, projectId: string) {
+  return API.post(
+    "/Project/LikeProjectPost",
+    null,
+    {
+      params: {
+        userId,
+        projectId,
+      },
+    }
+  );
+},
 
     createComment: (
         { userId, projectId, comment }:
@@ -16,7 +27,7 @@ const postApi = {
         }),
 
 
-    getComments: (projectId: string, role: string) =>
+    getComments: (projectId: string ) =>
         API.get("/Project/GetProject", {
             params: {
                 projectId: projectId,

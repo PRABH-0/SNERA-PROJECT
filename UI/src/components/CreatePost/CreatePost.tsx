@@ -29,10 +29,10 @@ type TeamSize =
 
 type TimeCommitment =
   | ""
-  | "5-10"
-  | "10-20"
-  | "20-30"
-  | "30+"
+  | "5-10 hours/week"
+  | "10-20 hours/week"
+  | "20-30 hours/week"
+  | "30+ hours/week"
   | "flexible";
 
 type ProjectStatus = "" | "planning" | "development" | "testing";
@@ -101,12 +101,12 @@ const CreatePost: React.FC = () => {
     } catch { }
   }, []);
 
-    const teamSizeMap: Record<TeamSize, number> = {
-  "": 0,
-  "1": 1,
-  "2-4": 4,
-  "5-7": 7,
-  "8+": 8,
+    const teamSizeMap: Record<TeamSize, string> = {
+  "": "0",
+  "1": "1",
+  "2-4":"2-4",
+  "5-7":"5-7",
+  "8+": "8+",
 }; 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.id]: e.target.value });
